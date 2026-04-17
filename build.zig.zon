@@ -1,0 +1,21 @@
+.{
+    .name = .lakerhacks_2026,
+    .version = "0.0.0",
+    .fingerprint = 0xbc4496b451a51ed, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.15.2",
+
+    .dependencies = .{
+        .raylib_zig = .{
+            .path = "../raylib-zig",
+        },
+        .emsdk = .{
+            .url = "git+https://github.com/emscripten-core/emsdk?ref=4.0.9#3bcf1dcd01f040f370e10fe673a092d9ed79ebb5",
+            .hash = "N-V-__8AAJl1DwBezhYo_VE6f53mPVm00R-Fk28NPW7P14EQ",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

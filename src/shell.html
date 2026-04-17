@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Emscripten-Generated Code</title>
+    <style>
+      body { margin: 0; background-color: white; }
+      .emscripten { padding-right: 0; margin-left: 0; display: block; }
+      textarea.emscripten { font-family: monospace; width: 80%; }
+      div.emscripten { text-align: center; }
+      div.emscripten_border { border: 1px solid black; }
+      
+      #status {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          visibility: visible;
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: 0;
+      }
+
+      #status-progress {
+          display: block;
+          width: 0%;
+          max-width: 580px;
+          margin: 0 auto;
+          background-color: black;
+          height: 10px;
+
+          position: absolute;
+          left: 0;
+          right: 0;
+      }
+
+      #status-notice {
+          display: none;
+          width: 0;
+          background-color: #5b3943;
+          border-radius: 0.5rem;
+          border: 1px solid #9b3943;
+          color: #e0e0e0;
+          line-height: 1.3;
+          margin: 0 2rem;
+          overflow: hidden;
+          padding: 1rem;
+          text-align: center;
+          z-index: 1;
+      }
+      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+      
+      .canvas-holder {
+        display: flex;
+        justify-content: center; /* Centers horizontally */
+        align-items: center;     /* Centers vertically */
+        height: 100vh;           /* Ensures the container fills the viewport height */
+      }
+
+      canvas.emscripten {
+          image-rendering: -moz-crisp-edges;
+          image-rendering: -webkit-crisp-edges;
+          image-rendering: pixelated;
+          image-rendering: crisp-edges;
+          /* Prevent blur on resize */
+          -ms-interpolation-mode: nearest-neighbor;
+      }
+      
+      canvas.emscripten:focus {
+          outline: none;
+      }
+
+      @-webkit-keyframes rotation {
+        from {-webkit-transform: rotate(0deg);}
+        to {-webkit-transform: rotate(360deg);}
+      }
+      @-moz-keyframes rotation {
+        from {-moz-transform: rotate(0deg);}
+        to {-moz-transform: rotate(360deg);}
+      }
+      @-o-keyframes rotation {
+        from {-o-transform: rotate(0deg);}
+        to {-o-transform: rotate(360deg);}
+      }
+      @keyframes rotation {
+        from {transform: rotate(0deg);}
+        to {transform: rotate(360deg);}
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="canvas-holder">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    </div>
+    <div id="status">
+        <div id="status-progress"></div>
+        <div id="status-notice"></div>
+    </div>
+    <script type='text/javascript'>
+      var statusOverlay = document.getElementById('status');
+      var statusProgress = document.getElementById('status-progress');
+      var statusNotice = document.getElementById('status-notice');
+      var canvasElement = document.getElementById('canvas');
+      
+      let initializing = true;
+      let statusMode = '';
+
+      function setStatusMode(mode) {
+          if (statusMode === mode || !initializing) {
+              return;
+          }
+          if (mode === 'hidden') {
+              statusOverlay.remove();
+              initializing = false;
+              return;
+          }
+          statusOverlay.style.visibility = 'visible';
+          statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+          statusNotice.style.display = mode === 'noitice' ? 'block' : 'none';
+          statusMode = mode;
+      }
+      
+      function setStatusNotice(text) {
+          while (statusNotice.lastChild) {
+              statusNotice.removeChild(statusNotice.lastChild);
+          }
+          const lines = text.split('\n');
+          lines.forEach((line) => {
+              statusNotice.appendChild(document.createTextNode(line));
+              statusNotice.appendChild(document.createElement('br'));
+          });
+      }
+
+      // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+      // application robust, you may want to override this behavior before shipping!
+      // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+      canvasElement.addEventListener("webglcontextlost", (e) => {
+        alert('WebGL context lost. You will need to reload the page.');
+        e.preventDefault();
+      }, false);
+
+
+      function setStatus(text) {
+        if (!setStatus.last) setStatus.last = { time: Date.now(), text: '' };
+        if (text === 'All preloads done' || text === 'Downloading data...') return;
+        if (text === setStatus.last.text) return;
+        var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+        var now = Date.now();
+        setStatus.last.time = now;
+        setStatus.last.text = text;
+        if (m) {
+            console.log(m[1]);
+            if (m[1] === 'Preparing') {
+                setStatusMode('progress');
+                statusProgress.style.width = (parseInt(m[2]) / parseInt(m[4]) * 100) + "%";
+                console.log(statusProgress.style.width);
+            }
+        } else {
+            console.log(text);
+            console.log("HIDE");
+            setStatusMode('hidden');
+        }
+      }
+
+#if MODULARIZE && !EXPORT_ES6
+      var moduleArgs = {
+#else
+      var Module = {
+#endif
+        print(...args) {
+          console.log(...args);
+        },
+        canvas: canvasElement,
+        setStatus: setStatus,
+        totalDependencies: 0,
+        monitorRunDependencies(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+           setStatus(left ? 'Preparing(' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All preloads done.(1/1)');
+        }
+      };
+      window.onerror = () => {
+        setStatus('Exception thrown, see JavaScript console');
+        spinnerelement.style.display = 'none';
+        setStatus = (text) => {
+          if (text) console.error('[post-exception status] ' + text);
+        };
+      };
+    </script>
+    {{{ SCRIPT }}}
+#if MODULARIZE && !EXPORT_ES6
+    <script type='text/javascript'>
+      {{{ EXPORT_NAME }}}(moduleArgs);
+    </script>
+#endif
+  </body>
+</html>
