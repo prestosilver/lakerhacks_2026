@@ -6,7 +6,8 @@
 
     .dependencies = .{
         .raylib_zig = .{
-            .path = "../raylib-zig",
+            .url = "git+https://github.com/prestosilver/raylib-zig#cd71c85d571027ac8033357f83b124ee051825b3",
+            .hash = "raylib_zig-5.6.0-dev-KE8REENOBQC-m5nK7M2b5aKSIubJPbPLUYcRhT7aT3RN",
         },
         .emsdk = .{
             .url = "git+https://github.com/emscripten-core/emsdk?ref=4.0.9#3bcf1dcd01f040f370e10fe673a092d9ed79ebb5",

@@ -7,7 +7,7 @@ pub fn main() anyerror!void {
     const screenWidth = 800;
     const screenHeight = 450;
 
-    rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
+    rl.initWindow(screenWidth, screenHeight, "Lakerhacks 2026");
     defer rl.closeWindow();
 
     rl.setTargetFPS(60);
