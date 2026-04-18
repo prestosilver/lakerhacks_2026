@@ -8,7 +8,7 @@ const Camera = @import("Camera.zig");
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 450;
 
-const TPS = 20;
+const TPS = 20.0;
 
 const GRID_SIZE = 1024;
 const MAX_LINK_COUNT = 2048;
@@ -16,7 +16,7 @@ const MAX_LINK_COUNT = 2048;
 const FILL_RATIO = 0.25;
 const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
 
-const TICK_RATE = 1 / TPS;
+const TICK_RATE = 1.0 / TPS;
 
 const SCREEN_SIZE: rl.Vector2 = .{
     .x = SCREEN_WIDTH,
@@ -95,6 +95,13 @@ pub fn main() !void {
             const dt = rl.getFrameTime();
             tick_acc += dt;
 
+            var ticks: u32 = 0;
+            while(tick_acc > TICK_RATE)
+            {
+                ticks += 1;
+                tick_acc -= TICK_RATE;
+            }
+
             if(rl.isKeyDown(.a))
             {
                 camera.x -= dt;
@@ -115,7 +122,12 @@ pub fn main() !void {
             const scroll = rl.getMouseWheelMoveV();
             if(scroll.y != 0)
             {
-                camera.zoom_target += scroll.y;
+                camera.zoom_target += @intFromFloat(scroll.y);
+            }
+
+            for(0..ticks) |_|
+            {
+                camera.tick();
             }
         }
 
@@ -154,8 +166,6 @@ pub fn main() !void {
             }
 
             rl.drawRectangleV(rect_pos, .{ .x = rect_size, .y = rect_size }, color);
-
-            std.debug.print("{d}, {d}\n", .{mouse_world_pos.x, mouse_world_pos.y});
         }
     }
 }
