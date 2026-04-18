@@ -1,4 +1,7 @@
+const std = @import("std");
 const ryl = @import("raylib");
+
+const Link = @import("Link.zig");
 
 /// Contains quantities of all resources used.
 const StarResources = struct
@@ -17,6 +20,17 @@ const StarResources = struct
             .energy = 0,
             .mineral = 0
         };
+    }
+
+    /// Checks if the resources are all 0.
+    pub fn is_zero(self: StarResources) bool
+    {
+        if(self.population != 0) return false;
+        if(self.organic != 0) return false;
+        if(self.energy != 0) return false;
+        if(self.mineral != 0) return false;
+
+        return true;
     }
 
     /// Adds the quantities of another resource struct to this one.
@@ -68,7 +82,25 @@ pub fn init() Star
     return star;
 }
 
-pub fn tick() void
+/// Called once every tick.
+pub fn tick(self: *Star, links: std.ArrayList(Link)) void
 {
-    
+    for(links) |link|
+    {
+        var other: ?*Star = null;
+        if(link.a == self)
+        {
+            other = link.b;
+        }
+        else if(link.b == self)
+        {
+            other = link.a;
+        }
+
+        const o = other orelse continue;
+        if(!o.req_res.is_zero())
+        {
+            //TODO.
+        }
+    }
 }
