@@ -2,9 +2,14 @@ const std = @import("std");
 const rl = @import("raylib");
 
 const Star = @import("Star.zig");
+const Link = @import("Link.zig");
 
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 450;
+
+const TPS = 20;
+
+const TICK_RATE = 1 / TPS;
 
 const SCREEN_SIZE: rl.Vector2 = .{
     .x = SCREEN_WIDTH,
@@ -16,9 +21,13 @@ const allocator = std.heap.c_allocator;
 
 var stars: [1024][1024]?Star = .{[1]?Star{null} ** 1024} ** 1024;
 
+var link_buffer: [2048]Link = undefined;
+
 pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
     defer rl.closeWindow();
+
+    const links: std.ArrayList(Link) = .fromOwnedSlice(&link_buffer);
 
     // Clear the screen once to avoid a black flash
     {
@@ -33,14 +42,13 @@ pub fn main() !void {
     rl.initAudioDevice();
     defer rl.closeAudioDevice();
 
-    while (!rl.isAudioDeviceReady()) {}
-
     const blip: rl.Sound = try rl.loadSound("cont/blip_1.ogg");
 
+    var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
         { // Update
             const dt = rl.getFrameTime();
-            _ = dt;
+            tick_acc += dt;
 
             if (rl.isKeyPressed(.w)) {
                 rl.playSound(blip);
@@ -51,8 +59,9 @@ pub fn main() !void {
             rl.beginDrawing();
             defer rl.endDrawing();
 
-            rl.clearBackground(.white);
-            rl.drawText("Congrats! You created your first window!", 190, 200, 20, .light_gray);
+            for (links.items) |link| {
+                link.draw();
+            }
         }
     }
 }
