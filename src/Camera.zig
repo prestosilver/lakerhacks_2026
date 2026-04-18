@@ -60,7 +60,7 @@ pub fn size_to_screen(self: Camera, size: f32) f32
     return size * self.z * ZOOM_FACTOR;
 }
 
-pub fn tick(self: *Camera) void
+pub fn update(self: *Camera) void
 {
     const target = self.get_target_zoom();
     if(self.z != target)
