@@ -8,6 +8,7 @@ const StarResources = struct
     energy: f32,
     mineral: f32,
 
+    /// Initializes the struct by setting all resource values to 0.
     pub fn init_zero() StarResources
     {
         return .{
@@ -16,6 +17,29 @@ const StarResources = struct
             .energy = 0,
             .mineral = 0
         };
+    }
+
+    /// Adds the quantities of another resource struct to this one.
+    pub fn add(self: *StarResources, other: StarResources) void
+    {
+        self.population += other.population;
+        self.organic += other.organic;
+        self.energy += other.energy;
+        self.mineral += other.mineral;
+    }
+
+    /// Adds the quantities of another resource struct to this one, subtracting from the other resource struct.
+    pub fn exchange(self: *StarResources, other: *StarResources, amount: StarResources) void
+    {
+        self.population += amount.population;
+        self.organic += amount.organic;
+        self.energy += amount.energy;
+        self.mineral += amount.mineral;
+
+        other.population += amount.population;
+        other.organic += amount.organic;
+        other.energy += amount.energy;
+        other.mineral += amount.mineral;
     }
 };
 
