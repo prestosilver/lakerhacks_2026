@@ -3,7 +3,7 @@ const ryl = @import("raylib");
 
 const Link = @import("Link.zig");
 
-const GRID_UNIT = 10;
+const GRID_UNIT = 1;
 
 /// Contains quantities of all resources used.
 const StarResources = struct {
@@ -68,7 +68,7 @@ cycle_speed: f32,
 /// Cycle timer.
 cycle_timer: f32,
 
-pub fn draw(self: *Star) void {
+pub fn draw(self: *const Star) void {
     ryl.drawCircleV(
         .{
             .x = @floatFromInt(GRID_UNIT * self.x + GRID_UNIT / 2),
