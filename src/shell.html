@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Emscripten-Generated Code</title>
+    <title>Lakerhacks 2026</title>
     <style>
       body { margin: 0; background-color: white; }
       .emscripten { padding-right: 0; margin-left: 0; display: block; }
@@ -153,15 +153,11 @@
         setStatus.last.time = now;
         setStatus.last.text = text;
         if (m) {
-            console.log(m[1]);
             if (m[1] === 'Preparing') {
                 setStatusMode('progress');
                 statusProgress.style.width = (parseInt(m[2]) / parseInt(m[4]) * 100) + "%";
-                console.log(statusProgress.style.width);
             }
         } else {
-            console.log(text);
-            console.log("HIDE");
             setStatusMode('hidden');
         }
       }

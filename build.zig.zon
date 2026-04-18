@@ -1,7 +1,7 @@
 .{
     .name = .lakerhacks_2026,
     .version = "0.0.0",
-    .fingerprint = 0xbc4496b451a51ed, // Changing this has security and trust implications.
+    .fingerprint = 0xbc4496b451a51ed,
     .minimum_zig_version = "0.15.2",
 
     .dependencies = .{
