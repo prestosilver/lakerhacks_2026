@@ -14,7 +14,9 @@ const SCREEN_SIZE: rl.Vector2 = .{
 // zig+emscripten only works with c malloc/free
 const allocator = std.heap.c_allocator;
 
-pub fn main() anyerror!void {
+var stars: [1024][1024]?Star = .{[1]?Star{null} ** 1024} ** 1024;
+
+pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
     defer rl.closeWindow();
 
@@ -31,10 +33,18 @@ pub fn main() anyerror!void {
     rl.initAudioDevice();
     defer rl.closeAudioDevice();
 
+    while (!rl.isAudioDeviceReady()) {}
+
+    const blip: rl.Sound = try rl.loadSound("cont/blip_1.ogg");
+
     while (!rl.windowShouldClose()) {
         { // Update
             const dt = rl.getFrameTime();
             _ = dt;
+
+            if (rl.isKeyPressed(.w)) {
+                rl.playSound(blip);
+            }
         }
 
         { // Draw
