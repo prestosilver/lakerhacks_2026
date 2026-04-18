@@ -3,6 +3,9 @@ const rl = @import("raylib");
 
 const ZOOM_FACTOR: f32 = 100;
 
+const ZOOM_EXPONENT: f32 = 1.4;
+const ZOOM_SMOOTH: f32 = 2;
+
 const Camera = @This();
 
 x: f32,
@@ -49,7 +52,7 @@ pub fn get_window_size(self: Camera) rl.Vector2
 
 pub fn get_target_zoom(self: Camera) f32
 {
-    return std.math.pow(f32, 1.5, @floatFromInt(self.zoom_target));
+    return std.math.pow(f32, ZOOM_EXPONENT, @floatFromInt(self.zoom_target));
 }
 
 pub fn size_to_screen(self: Camera, size: f32) f32
@@ -63,7 +66,7 @@ pub fn tick(self: *Camera) void
     if(self.z != target)
     {
         const diff = target - self.z;
-        self.z += diff / 3;
+        self.z += diff / ZOOM_SMOOTH;
     }
 }
 

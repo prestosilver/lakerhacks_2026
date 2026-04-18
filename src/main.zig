@@ -10,13 +10,14 @@ const SCREEN_HEIGHT = 800;
 
 const TPS = 20.0;
 
-const GRID_SIZE = 1024;
-const MAX_LINK_COUNT = 2048;
+const GRID_SIZE = 512;
+const MAX_LINK_COUNT = 256;
 
 const FILL_RATIO = 0.25;
 const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
 
 const TICK_RATE = 1.0 / TPS;
+const CAMERA_SPEED = 5.0;
 
 const SCREEN_SIZE: rl.Vector2 = .{
     .x = SCREEN_WIDTH,
