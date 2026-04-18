@@ -21,6 +21,9 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
+    const content_directory = b.addWriteFiles();
+    _ = content_directory.addCopyFile(b.path("assets/audio/blip_1.ogg"), "blip_1.ogg");
+
     const run_step = b.step("run", "Run the app");
 
     if (target.query.os_tag == .emscripten) {
@@ -34,15 +37,25 @@ pub fn build(b: *std.Build) !void {
         const emcc_flags = emsdk.emccDefaultFlags(b.allocator, .{ .optimize = optimize });
         const emcc_settings = emsdk.emccDefaultSettings(b.allocator, .{ .optimize = optimize });
 
+        const cont_step = b.addInstallDirectory(.{
+            .source_dir = content_directory.getDirectory(),
+            .install_dir = .prefix,
+            .install_subdir = "cont",
+        });
+
         const emcc_step = emsdk.emccStep(b, raylib_artifact, wasm, .{
             .optimize = optimize,
             .flags = emcc_flags,
             .settings = emcc_settings,
             .install_dir = install_dir,
             .shell_file_path = b.path("src/shell.html"),
-            .preload_paths = &.{},
+            .preload_paths = &.{
+                .{ .src_path = "zig-out/cont", .virtual_path = "cont" },
+            },
         });
         b.getInstallStep().dependOn(emcc_step);
+
+        emcc_step.dependOn(&cont_step.step);
 
         const html_filename = try std.fmt.allocPrint(b.allocator, "index.html", .{});
         const emrun_step = emsdk.emrunStep(
@@ -59,6 +72,13 @@ pub fn build(b: *std.Build) !void {
             .root_module = exe_mod,
         });
         b.installArtifact(exe);
+
+        const cont_step = b.addInstallDirectory(.{
+            .source_dir = content_directory.getDirectory(),
+            .install_dir = .prefix,
+            .install_subdir = "cont",
+        });
+        exe.step.dependOn(&cont_step.step);
 
         const run_cmd = b.addRunArtifact(exe);
         run_cmd.setCwd(b.path("zig-out/bin"));
