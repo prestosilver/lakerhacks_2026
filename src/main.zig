@@ -50,6 +50,11 @@ pub fn main() !void {
             const dt = rl.getFrameTime();
             tick_acc += dt;
 
+            for (&stars) |*row|
+                for (row) |*star| {
+                    if (star.* != null) star.*.?.draw();
+                };
+
             if (rl.isKeyPressed(.w)) {
                 rl.playSound(blip);
             }
