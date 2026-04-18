@@ -115,12 +115,24 @@ pub fn main() !void {
                 link.draw();
             }
 
-            std.debug.print("{d}, {d}, {d}\n", .{camera.x, camera.y, camera.z});
+            // std.debug.print("{d}, {d}, {d}\n", .{camera.x, camera.y, camera.z});
 
             const rect_size = camera.size_to_screen(1);
             const rect_pos = camera.vector2_world_to_screen(.{ .x = 0, .y = 0 }, window_size);
 
-            std.debug.print("{d}, {d}, {d}\n", .{rect_pos.x, rect_pos.y, rect_size});
+            // std.debug.print("{d}, {d}, {d}\n", .{rect_pos.x, rect_pos.y, rect_size});
+
+            const mouse_pos_x = rl.getMouseX();
+            const mouse_pos_y = rl.getMouseY();
+
+            const mouse_pos: rl.Vector2 = .{
+                .x = @floatFromInt(mouse_pos_x),
+                .y = @floatFromInt(mouse_pos_y)
+            };
+
+            const mouse_world_pos = camera.vector2_screen_to_world(mouse_pos, window_size);
+
+            std.debug.print("{d}, {d}\n", .{mouse_world_pos.x, mouse_world_pos.y});
 
             rl.drawRectangleV(rect_pos, .{ .x = rect_size, .y = rect_size }, .red);
         }

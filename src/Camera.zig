@@ -22,10 +22,12 @@ pub fn size_to_screen(self: Camera, size: f32) f32
     return size * self.z * ZOOM_FACTOR;
 }
 
-pub fn vector2_screen_to_world(self: Camera, point: rl.Vector2) rl.Vector2
+pub fn vector2_screen_to_world(self: Camera, point: rl.Vector2, window_size: rl.Vector2) rl.Vector2
 {
-    _ = self;
-    _ = point;
+    return .{
+        .x = (point.x - window_size.x / 2) / (self.z * ZOOM_FACTOR) + self.x,
+        .y = (point.y - window_size.y / 2) / (self.z * ZOOM_FACTOR) + self.y,
+    };
 }
 
 pub fn vector2_world_to_screen(self: Camera, point: rl.Vector2, window_size: rl.Vector2) rl.Vector2
