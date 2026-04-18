@@ -10,6 +10,12 @@ const SCREEN_HEIGHT = 450;
 
 const TPS = 20;
 
+const GRID_SIZE = 1024;
+const MAX_LINK_COUNT = 2048;
+
+const FILL_RATIO = 0.25;
+const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
+
 const TICK_RATE = 1 / TPS;
 
 const SCREEN_SIZE: rl.Vector2 = .{
@@ -20,9 +26,10 @@ const SCREEN_SIZE: rl.Vector2 = .{
 // zig+emscripten only works with c malloc/free
 const allocator = std.heap.c_allocator;
 
-var stars: [1024][1024]?Star = .{[1]?Star{null} ** 1024} ** 1024;
+var stars: [GRID_SIZE][GRID_SIZE]?Star = .{[1]?Star{null} ** GRID_SIZE} ** GRID_SIZE;
+var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 
-var link_buffer: [2048]Link = undefined;
+var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
 var camera: Camera = .init();
 
@@ -30,7 +37,8 @@ pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
     defer rl.closeWindow();
 
-    const links: std.ArrayList(Link) = .fromOwnedSlice(&link_buffer);
+    const links: std.ArrayList(Link) = .initBuffer(&link_buffer);
+    var stars_aux: std.ArrayList(*Star) = .initBuffer(&stars_aux_buffer);
 
     // Clear the screen once to avoid a black flash
     {
@@ -47,6 +55,20 @@ pub fn main() !void {
 
     const blip: rl.Sound = try rl.loadSound("cont/blip_1.ogg");
     _ = blip;
+
+    { // WORLD GEN NERDS
+        for (0..STAR_COUNT) |_| {
+            const x: u16 = @intCast(rl.getRandomValue(0, GRID_SIZE - 1));
+            const y: u16 = @intCast(rl.getRandomValue(0, GRID_SIZE - 1));
+
+            stars[x][y] = .init(x, y);
+        }
+
+        for (&stars) |*row| for (row) |*cell| {
+            const star = &(cell.* orelse continue);
+            stars_aux.appendAssumeCapacity(star);
+        };
+    }
 
     var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
@@ -89,7 +111,7 @@ pub fn main() !void {
 
             rl.clearBackground(.{.r = 0, .g = 0, .b = 0, .a = 255});
 
-            for (links.items) |*link| {
+            for (links.items) |link| {
                 link.draw();
             }
 
