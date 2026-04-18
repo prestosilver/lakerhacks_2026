@@ -115,6 +115,8 @@ pub fn main() !void {
             const scroll = rl.getMouseWheelMoveV();
             if (scroll.y != 0) {
                 camera.zoom_target += @intFromFloat(scroll.y);
+                camera.zoom_target = @min(camera.zoom_target, 6);
+                camera.zoom_target = @max(camera.zoom_target, -8);
             }
 
             camera.tick();
