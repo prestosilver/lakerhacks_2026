@@ -75,7 +75,7 @@ pub fn build(b: *std.Build) !void {
 
         const cont_step = b.addInstallDirectory(.{
             .source_dir = content_directory.getDirectory(),
-            .install_dir = .prefix,
+            .install_dir = .bin,
             .install_subdir = "cont",
         });
         exe.step.dependOn(&cont_step.step);
