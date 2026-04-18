@@ -11,6 +11,7 @@ const SCREEN_HEIGHT = 800;
 const TPS = 20.0;
 
 const GRID_SIZE = 512;
+const GRID_MEDIAN = GRID_SIZE / 2;
 const MAX_LINK_COUNT = 256;
 
 const FILL_RATIO = 0.25;
@@ -74,18 +75,36 @@ pub fn main() !void {
     camera.x = (GRID_SIZE / 2);
     camera.y = (GRID_SIZE / 2);
 
-    { // WORLD GEN NERDS
-        for (0..STAR_COUNT) |_| {
-            const x: u16 = @intCast(rl.getRandomValue(0, GRID_SIZE - 1));
-            const y: u16 = @intCast(rl.getRandomValue(0, GRID_SIZE - 1));
+    const base_star_chance = 0.1;
 
-            stars[x][y] = .init(&star_texture, x, y);
-        }
+    { // WORLD GEN NERDS
+        for (0..GRID_SIZE) |i| for (0..GRID_SIZE) |j| {
+            // TODO: Stretch goal: make the galaxy spiral out. (might take an hour or two).
+
+            const is: isize = @intCast(i);
+            const js: isize = @intCast(j);
+
+            const distance = std.math.sqrt(@as(f32, @floatFromInt(std.math.pow(isize, is - GRID_MEDIAN, 2) + std.math.pow(isize, js - GRID_MEDIAN, 2))));
+
+            const inner_density_factor = 1 - @min(1, distance / 30 - 1);
+            const outer_density_factor = 1 - distance / GRID_MEDIAN;
+
+            const density_factor = outer_density_factor - inner_density_factor;
+
+            const chance = base_star_chance * density_factor;
+
+            const r = rl.getRandomValue(0, 999);
+            if (r < @as(i32, @intFromFloat(chance * 1000))) {
+                stars[i][j] = .init(&star_texture, @truncate(i), @truncate(j));
+            }
+        };
 
         for (&stars) |*row| for (row) |*cell| {
             const star = &(cell.* orelse continue);
             stars_aux.appendAssumeCapacity(star);
         };
+
+        std.debug.print("Total stars: {d}.\n", .{stars_aux.items.len});
     }
 
     var tick_acc: f64 = 0;
@@ -122,7 +141,7 @@ pub fn main() !void {
             if (scroll.y != 0) {
                 camera.zoom_target += @intFromFloat(scroll.y);
                 camera.zoom_target = @min(camera.zoom_target, 6);
-                camera.zoom_target = @max(camera.zoom_target, -8);
+                camera.zoom_target = @max(camera.zoom_target, -13);
             }
 
             camera.tick();
