@@ -35,7 +35,7 @@ var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 
 var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
-var factions_aux_buffer: [MAX_FACTION_COUNT]*Faction = undefined;
+var factions_aux_buffer: [MAX_FACTION_COUNT]Faction = undefined;
 
 var camera: Camera = .init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -57,7 +57,7 @@ pub fn main() !void {
     const links: std.ArrayList(Link) = .initBuffer(&link_buffer);
 
     var stars_aux: std.ArrayList(*Star) = .initBuffer(&stars_aux_buffer);
-    var factions_aux: std.ArrayList(*Faction) = .initBuffer(&factions_aux_buffer);
+    var factions_aux: std.ArrayList(Faction) = .initBuffer(&factions_aux_buffer);
 
     // Clear the screen once to avoid a black flash
     {
@@ -114,16 +114,26 @@ pub fn main() !void {
         var cur_faction: usize = 1;
         while(num_factions > 0) : (num_factions -= 1)
         {
-            var host_star = rl.getRandomValue(0, stars.len - 1);
+            var host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
             while(stars_aux.items[host_star].owner != 0)
             {
                 // Make sure the star isn't already owned by another faction.
-                host_star = rl.getRandomValue(0, stars.len - 1);
+                host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
             }
 
-            stars_aux.items[host_star].owner = cur_faction;
+            std.debug.print("{d}\n", .{host_star});
 
-            factions_aux.appendAssumeCapacity(host_star);
+            stars_aux.items[host_star].setOwner(host_star);
+
+            const faction: Faction = .init(stars_aux.items[host_star]);
+            factions_aux.appendAssumeCapacity(faction);
+
+            if(cur_faction == 1)
+            {
+                const star_pos = stars_aux.items[host_star].getStarWorldPos(true);
+                camera.x = star_pos.x;
+                camera.y = star_pos.y;
+            }
 
             cur_faction += 1;
         }
@@ -184,7 +194,7 @@ pub fn main() !void {
             const screen_bounds = camera.get_screen_space_rect();
 
             for (stars_aux.items) |star| {
-                if (rl.checkCollisionRecs(star.getRectangle(), screen_bounds))
+                if (rl.checkCollisionRecs(star.getGridRectangle(), screen_bounds))
                     star.draw(camera);
             }
 

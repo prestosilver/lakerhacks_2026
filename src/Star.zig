@@ -75,6 +75,9 @@ cycle_timer: f32,
 /// ID of the faction owner. 0 if unclaimed.
 owner: usize,
 
+/// Color of the background cell, determined by the owning faction.
+faction_color: rl.Color = .blank,
+
 pub fn draw(self: *const Star, camera: Camera) void {
     const world_pos: rl.Vector2 = .{
         .x = @floatFromInt(GRID_UNIT * self.x),
@@ -91,6 +94,13 @@ pub fn draw(self: *const Star, camera: Camera) void {
         .height = screen_size,
     };
 
+    const grid_rectangle_world = self.getGridRectangle();
+
+    const grid_pos_screen = camera.vector2_world_to_screen(.{.x = grid_rectangle_world.x, .y = grid_rectangle_world.y});
+    const grid_size_screen = camera.size_to_screen(GRID_UNIT);
+
+    rl.drawRectangleV(grid_pos_screen, .{ .x = grid_size_screen, .y = grid_size_screen}, self.faction_color);
+
     self.texture.drawPro(
         .{
             .x = 0,
@@ -104,7 +114,7 @@ pub fn draw(self: *const Star, camera: Camera) void {
             .width = screen_size,
             .height = screen_size,
         },
-        .{ .x = screen_pos.width * 0.5, .y = screen_pos.height / 2 },
+        .{ .x = screen_pos.width / 2, .y = screen_pos.height / 2 },
         (self.cycle_timer / self.cycle_length) * 360,
         .white,
     );
@@ -141,13 +151,67 @@ pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
     return star;
 }
 
-pub fn getRectangle(self: Star) rl.Rectangle {
+pub fn getFactionColor(self: Star) rl.Color
+{
+    if(self.owner == 0)
+    {
+        return .blank;
+    }
+    else
+    {
+        const r: usize = (45 + (1771 * self.owner) % 855) & 127;
+        const g: usize = (113 + (8121 * self.owner) % 1059) & 127;
+        const b: usize = (201 + (6599 * self.owner) % 653) & 127;
+
+        return .{
+            .r = @truncate(r + 128),
+            .g = @truncate(g + 128),
+            .b = @truncate(b + 128),
+            .a = 102
+        };
+    }
+}
+
+pub fn getGridRectangle(self: Star) rl.Rectangle {
+    return .{
+        .x = @floatFromInt(GRID_UNIT * self.x),
+        .y = @floatFromInt(GRID_UNIT * self.y),
+        .width = GRID_UNIT,
+        .height = GRID_UNIT
+    };
+}
+
+pub fn getStarRectangle(self: Star) rl.Rectangle {
     return .{
         .x = @floatFromInt(GRID_UNIT * self.x),
         .y = @floatFromInt(GRID_UNIT * self.y),
         .width = GRID_UNIT * RADIUS * 2,
         .height = GRID_UNIT * RADIUS * 2,
     };
+}
+
+pub fn getStarWorldPos(self: Star, centered: bool) rl.Vector2
+{
+    if(centered)
+    {
+        const x: f32 = @floatFromInt(GRID_UNIT * self.x);
+        const y: f32 = @floatFromInt(GRID_UNIT * self.y);
+
+        return .{
+            .x = x + RADIUS,
+            .y = y + RADIUS
+        };
+    }
+    else return .{
+        .x = @floatFromInt(GRID_UNIT * self.x),
+        .y = @floatFromInt(GRID_UNIT * self.y)
+    };
+}
+
+pub fn setOwner(self: *Star, owner: usize) void
+{
+    self.owner = owner;
+    self.faction_color = self.getFactionColor();
 }
 
 /// Called once every tick.
