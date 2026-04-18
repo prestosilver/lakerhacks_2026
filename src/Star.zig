@@ -59,6 +59,9 @@ const StarResources = struct
 
 pub const Star = @This();
 
+x: u16,
+y: u16,
+
 /// Total resources that the star system could have/produce.
 total_res: StarResources,
 /// Resources generated every tick.
@@ -66,17 +69,35 @@ gen_res: StarResources,
 /// Resources that the star is requesting from other stars.
 req_res: StarResources,
 
-pub fn init() Star
+/// Cycle length.
+cycle_length: f32,
+/// Increase (per tick) in cycle.
+cycle_speed: f32,
+/// Cycle timer.
+cycle_timer: f32,
+
+pub fn draw(self: *Star) void
+{
+    
+}
+
+pub fn init(x: u16, y: u16) Star
 {
     const star: Star = .{
+        .x = x,
+        .y = y,
         .total_res = .{
             .population = 0,
-            .organic = ryl.getRandomValue(0, 1000),
+            .organic = @floatFromInt(ryl.getRandomValue(0, 1000)),
             .energy = 0,
-            .mineral = ryl.getRandomValue(0, 60)
+            .mineral = @floatFromInt(ryl.getRandomValue(0, 60))
         },
         .gen_res = .init_zero(),
-        .req_res = .init_zero()
+        .req_res = .init_zero(),
+
+        .cycle_length = @floatFromInt(ryl.getRandomValue(10000, 30000)),
+        .cycle_timer = @floatFromInt(ryl.getRandomValue(0, 30000)),
+        .cycle_speed = @as(f32, @floatFromInt(ryl.getRandomValue(1, 100))) / 10,
     };
 
     return star;
@@ -98,9 +119,30 @@ pub fn tick(self: *Star, links: std.ArrayList(Link)) void
         }
 
         const o = other orelse continue;
+
+        var linked: bool = false;
+        if(self.cycle_timer >= o.cycle_timer and !link.toggle)
+        {
+            linked = true;
+            link.toggle = true;
+        }
+        else if(self.cycle_timer < o.cycle_timer and link.toggle)
+        {
+            linked = true;
+            link.toggle = false;
+        }
+
+        if(!linked) continue;
+
         if(!o.req_res.is_zero())
         {
-            //TODO.
+            //TODO: Swap resources & other stuff.
         }
+    }
+
+    self.cycle_timer += 1;
+    if(self.cycle_timer >= self.cycle_length)
+    {
+        self.cycle_timer -= self.cycle_length;
     }
 }
