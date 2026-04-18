@@ -126,10 +126,7 @@ pub fn main() !void {
                 camera.zoom_target += @intFromFloat(scroll.y);
             }
 
-            for(0..ticks) |_|
-            {
-                camera.tick();
-            }
+            camera.tick();
         }
 
         { // Draw

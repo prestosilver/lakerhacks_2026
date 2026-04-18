@@ -4,7 +4,7 @@ const rl = @import("raylib");
 const ZOOM_FACTOR: f32 = 100;
 
 const ZOOM_EXPONENT: f32 = 1.4;
-const ZOOM_SMOOTH: f32 = 2;
+const ZOOM_SMOOTH: f32 = 3;
 
 const Camera = @This();
 
