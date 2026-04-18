@@ -5,7 +5,7 @@ const Link = @import("Link.zig");
 const Camera = @import("Camera.zig");
 
 const GRID_UNIT = 1;
-const RADIUS = 0.4;
+const RADIUS = 0.2;
 
 /// Contains quantities of all resources used.
 const StarResources = struct {
@@ -53,6 +53,8 @@ const StarResources = struct {
 
 pub const Star = @This();
 
+texture: *const rl.Texture,
+
 x: u16,
 y: u16,
 
@@ -79,20 +81,42 @@ pub fn draw(self: *const Star, camera: Camera) void {
     const to_screen = camera.vector2_world_to_screen(world_pos);
     const screen_size = camera.size_to_screen(RADIUS * GRID_UNIT * 2);
 
-    rl.drawRectangleLinesEx(
+    const screen_pos: rl.Rectangle = .{
+        .x = to_screen.x,
+        .y = to_screen.y,
+        .width = screen_size,
+        .height = screen_size,
+    };
+
+    self.texture.drawPro(
         .{
-            .x = to_screen.x,
-            .y = to_screen.y,
+            .x = 0,
+            .y = 0,
+            .width = 19,
+            .height = 19,
+        },
+        .{
+            .x = to_screen.x + screen_size / 2,
+            .y = to_screen.y + screen_size / 2,
             .width = screen_size,
             .height = screen_size,
         },
-        2,
+        .{ .x = screen_pos.width * 0.5, .y = screen_pos.height / 2 },
+        (self.cycle_timer / self.cycle_length) * 360,
         .white,
     );
+
+    if (@import("builtin").mode == .Debug)
+        rl.drawRectangleLinesEx(
+            screen_pos,
+            2,
+            .blue,
+        );
 }
 
-pub fn init(x: u16, y: u16) Star {
+pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
     const star: Star = .{
+        .texture = texture,
         .x = x,
         .y = y,
         .total_res = .{
@@ -104,8 +128,8 @@ pub fn init(x: u16, y: u16) Star {
         .gen_res = .init_zero(),
         .req_res = .init_zero(),
 
-        .cycle_length = @floatFromInt(rl.getRandomValue(10000, 30000)),
-        .cycle_timer = @floatFromInt(rl.getRandomValue(0, 30000)),
+        .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
+        .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)),
         .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10,
     };
 
@@ -123,7 +147,7 @@ pub fn getRectangle(self: Star) rl.Rectangle {
 
 /// Called once every tick.
 pub fn tick(self: *Star, links: std.ArrayList(Link)) void {
-    for (links) |link| {
+    for (links.items) |*link| {
         var other: ?*Star = null;
         if (link.a == self) {
             other = link.b;

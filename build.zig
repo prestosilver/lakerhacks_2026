@@ -23,6 +23,7 @@ pub fn build(b: *std.Build) !void {
 
     const content_directory = b.addWriteFiles();
     _ = content_directory.addCopyFile(b.path("assets/audio/blip_1.ogg"), "blip_1.ogg");
+    _ = content_directory.addCopyFile(b.path("assets/images/star.png"), "star.png");
 
     const run_step = b.step("run", "Run the app");
 

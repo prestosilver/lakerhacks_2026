@@ -66,7 +66,10 @@ pub fn main() !void {
     defer rl.closeAudioDevice();
 
     const blip: rl.Sound = try rl.loadSound("cont/blip_1.ogg");
-    _ = blip;
+    defer blip.unload();
+
+    const star_texture = try rl.loadTexture("cont/star.png");
+    defer star_texture.unload();
 
     camera.x = (GRID_SIZE / 2);
     camera.y = (GRID_SIZE / 2);
@@ -76,7 +79,7 @@ pub fn main() !void {
             const x: u16 = @intCast(rl.getRandomValue(0, GRID_SIZE - 1));
             const y: u16 = @intCast(rl.getRandomValue(0, GRID_SIZE - 1));
 
-            stars[x][y] = .init(x, y);
+            stars[x][y] = .init(&star_texture, x, y);
         }
 
         for (&stars) |*row| for (row) |*cell| {
@@ -95,6 +98,9 @@ pub fn main() !void {
             while (tick_acc > TICK_RATE) {
                 ticks += 1;
                 tick_acc -= TICK_RATE;
+
+                for (stars_aux.items) |star|
+                    star.tick(links);
             }
 
             const camera_move = dt * CAMERA_SPEED / camera.z;
