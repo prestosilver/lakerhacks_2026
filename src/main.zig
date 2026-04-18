@@ -17,6 +17,7 @@ const FILL_RATIO = 0.25;
 const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
 
 const TICK_RATE = 1.0 / TPS;
+const CAMERA_SPEED = 5.0;
 
 const SCREEN_SIZE: rl.Vector2 = .{
     .x = SCREEN_WIDTH,
@@ -104,19 +105,19 @@ pub fn main() !void {
 
             if(rl.isKeyDown(.a))
             {
-                camera.x -= dt / camera.z;
+                camera.x -= CAMERA_SPEED * dt / camera.z;
             }
             if(rl.isKeyDown(.d))
             {
-                camera.x += dt / camera.z;
+                camera.x += CAMERA_SPEED * dt / camera.z;
             }
             if(rl.isKeyDown(.w))
             {
-                camera.y -= dt / camera.z;
+                camera.y -= CAMERA_SPEED * dt / camera.z;
             }
             if(rl.isKeyDown(.s))
             {
-                camera.y += dt / camera.z;
+                camera.y += CAMERA_SPEED * dt / camera.z;
             }
 
             const scroll = rl.getMouseWheelMoveV();
