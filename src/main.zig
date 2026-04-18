@@ -6,12 +6,12 @@ const Link = @import("Link.zig");
 const Camera = @import("Camera.zig");
 
 const SCREEN_WIDTH = 800;
-const SCREEN_HEIGHT = 450;
+const SCREEN_HEIGHT = 800;
 
 const TPS = 20.0;
 
-const GRID_SIZE = 1024;
-const MAX_LINK_COUNT = 2048;
+const GRID_SIZE = 512;
+const MAX_LINK_COUNT = 256;
 
 const FILL_RATIO = 0.25;
 const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
@@ -34,19 +34,14 @@ var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
 var camera: Camera = .init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-fn get_mouse_position() rl.Vector2
-{
+fn get_mouse_position() rl.Vector2 {
     const mouse_pos_x = rl.getMouseX();
     const mouse_pos_y = rl.getMouseY();
 
-    return .{
-        .x = @floatFromInt(mouse_pos_x),
-        .y = @floatFromInt(mouse_pos_y)
-    };
+    return .{ .x = @floatFromInt(mouse_pos_x), .y = @floatFromInt(mouse_pos_y) };
 }
 
-fn get_mouse_world_position() rl.Vector2
-{
+fn get_mouse_world_position() rl.Vector2 {
     return camera.vector2_screen_to_world(get_mouse_position());
 }
 
@@ -97,32 +92,26 @@ pub fn main() !void {
             tick_acc += dt;
 
             var ticks: u32 = 0;
-            while(tick_acc > TICK_RATE)
-            {
+            while (tick_acc > TICK_RATE) {
                 ticks += 1;
                 tick_acc -= TICK_RATE;
             }
 
-            if(rl.isKeyDown(.a))
-            {
-                camera.x -= CAMERA_SPEED * dt / camera.z;
+            if (rl.isKeyDown(.a)) {
+                camera.x -= dt;
             }
-            if(rl.isKeyDown(.d))
-            {
-                camera.x += CAMERA_SPEED * dt / camera.z;
+            if (rl.isKeyDown(.d)) {
+                camera.x += dt;
             }
-            if(rl.isKeyDown(.w))
-            {
-                camera.y -= CAMERA_SPEED * dt / camera.z;
+            if (rl.isKeyDown(.w)) {
+                camera.y -= dt;
             }
-            if(rl.isKeyDown(.s))
-            {
-                camera.y += CAMERA_SPEED * dt / camera.z;
+            if (rl.isKeyDown(.s)) {
+                camera.y += dt;
             }
 
             const scroll = rl.getMouseWheelMoveV();
-            if(scroll.y != 0)
-            {
+            if (scroll.y != 0) {
                 camera.zoom_target += @intFromFloat(scroll.y);
             }
 
@@ -133,7 +122,7 @@ pub fn main() !void {
             rl.beginDrawing();
             defer rl.endDrawing();
 
-            rl.clearBackground(.{.r = 0, .g = 0, .b = 0, .a = 255});
+            rl.clearBackground(.{ .r = 0, .g = 0, .b = 0, .a = 255 });
 
             for (links.items) |link| {
                 link.draw();
@@ -141,9 +130,8 @@ pub fn main() !void {
 
             const screen_bounds = camera.get_screen_space_rect();
 
-            for (stars_aux.items) |star| 
-            {
-                if(rl.checkCollisionRecs(star.getRectangle(), screen_bounds))
+            for (stars_aux.items) |star| {
+                if (rl.checkCollisionRecs(star.getRectangle(), screen_bounds))
                     star.draw(camera);
             }
 
@@ -154,12 +142,9 @@ pub fn main() !void {
 
             var color: rl.Color = undefined;
 
-            if(rl.checkCollisionPointRec(mouse_world_pos, .{ .x = 0, .y = 0, .width = 1, .height = 1}))
-            {
+            if (rl.checkCollisionPointRec(mouse_world_pos, .{ .x = 0, .y = 0, .width = 1, .height = 1 })) {
                 color = .pink;
-            }
-            else
-            {
+            } else {
                 color = .red;
             }
 

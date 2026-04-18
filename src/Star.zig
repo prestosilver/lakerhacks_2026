@@ -84,7 +84,7 @@ pub fn draw(self: *const Star, camera: Camera) void {
             .x = to_screen.x,
             .y = to_screen.y,
             .width = screen_size,
-            .height = screen_size
+            .height = screen_size,
         },
         2,
         .white,
@@ -112,13 +112,12 @@ pub fn init(x: u16, y: u16) Star {
     return star;
 }
 
-pub fn getRectangle(self: Star) rl.Rectangle
-{
+pub fn getRectangle(self: Star) rl.Rectangle {
     return .{
         .x = @floatFromInt(GRID_UNIT * self.x),
         .y = @floatFromInt(GRID_UNIT * self.y),
         .width = GRID_UNIT * RADIUS * 2,
-        .height = GRID_UNIT * RADIUS * 2
+        .height = GRID_UNIT * RADIUS * 2,
     };
 }
 
