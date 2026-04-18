@@ -4,6 +4,7 @@ const rl = @import("raylib");
 const Star = @import("Star.zig");
 const Link = @import("Link.zig");
 const Camera = @import("Camera.zig");
+const Faction = @import("Faction.zig");
 
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 800;
@@ -13,6 +14,7 @@ const TPS = 20.0;
 const GRID_SIZE = 512;
 const GRID_MEDIAN = GRID_SIZE / 2;
 const MAX_LINK_COUNT = 256;
+const MAX_FACTION_COUNT = 1024;
 
 const FILL_RATIO = 0.25;
 const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
@@ -33,6 +35,8 @@ var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 
 var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
+var factions_aux_buffer: [MAX_FACTION_COUNT]*Faction = undefined;
+
 var camera: Camera = .init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 fn get_mouse_position() rl.Vector2 {
@@ -51,7 +55,9 @@ pub fn main() !void {
     defer rl.closeWindow();
 
     const links: std.ArrayList(Link) = .initBuffer(&link_buffer);
+
     var stars_aux: std.ArrayList(*Star) = .initBuffer(&stars_aux_buffer);
+    var factions_aux: std.ArrayList(*Faction) = .initBuffer(&factions_aux_buffer);
 
     // Clear the screen once to avoid a black flash
     {
@@ -103,6 +109,24 @@ pub fn main() !void {
             const star = &(cell.* orelse continue);
             stars_aux.appendAssumeCapacity(star);
         };
+
+        var num_factions = rl.getRandomValue(6, 25);
+        var cur_faction: usize = 1;
+        while(num_factions > 0) : (num_factions -= 1)
+        {
+            var host_star = rl.getRandomValue(0, stars.len - 1);
+            while(stars_aux.items[host_star].owner != 0)
+            {
+                // Make sure the star isn't already owned by another faction.
+                host_star = rl.getRandomValue(0, stars.len - 1);
+            }
+
+            stars_aux.items[host_star].owner = cur_faction;
+
+            factions_aux.appendAssumeCapacity(host_star);
+
+            cur_faction += 1;
+        }
 
         std.debug.print("Total stars: {d}.\n", .{stars_aux.items.len});
     }

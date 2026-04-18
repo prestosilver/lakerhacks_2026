@@ -72,6 +72,9 @@ cycle_speed: f32,
 /// Cycle timer.
 cycle_timer: f32,
 
+/// ID of the faction owner. 0 if unclaimed.
+owner: usize,
+
 pub fn draw(self: *const Star, camera: Camera) void {
     const world_pos: rl.Vector2 = .{
         .x = @floatFromInt(GRID_UNIT * self.x),
@@ -131,6 +134,8 @@ pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
         .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
         .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)),
         .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10,
+
+        .owner = 0,
     };
 
     return star;
