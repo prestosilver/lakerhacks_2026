@@ -8,12 +8,17 @@ x: f32,
 y: f32,
 z: f32,
 
-pub fn init() Camera
+screen_width: f32,
+screen_height: f32,
+
+pub fn init(screen_width: f32, screen_height: f32) Camera
 {
     return .{
         .x = 0,
         .y = 0,
-        .z = 1
+        .z = 1,
+        .screen_width = screen_width,
+        .screen_height = screen_height
     };
 }
 
@@ -22,18 +27,18 @@ pub fn size_to_screen(self: Camera, size: f32) f32
     return size * self.z * ZOOM_FACTOR;
 }
 
-pub fn vector2_screen_to_world(self: Camera, point: rl.Vector2, window_size: rl.Vector2) rl.Vector2
+pub fn vector2_screen_to_world(self: Camera, point: rl.Vector2) rl.Vector2
 {
     return .{
-        .x = (point.x - window_size.x / 2) / (self.z * ZOOM_FACTOR) + self.x,
-        .y = (point.y - window_size.y / 2) / (self.z * ZOOM_FACTOR) + self.y,
+        .x = (point.x - self.screen_width / 2) / (self.z * ZOOM_FACTOR) + self.x,
+        .y = (point.y - self.screen_height / 2) / (self.z * ZOOM_FACTOR) + self.y,
     };
 }
 
-pub fn vector2_world_to_screen(self: Camera, point: rl.Vector2, window_size: rl.Vector2) rl.Vector2
+pub fn vector2_world_to_screen(self: Camera, point: rl.Vector2) rl.Vector2
 {
     return .{
-        .x = (point.x - self.x) * self.z * ZOOM_FACTOR + window_size.x / 2,
-        .y = (point.y - self.y) * self.z * ZOOM_FACTOR + window_size.y / 2
+        .x = (point.x - self.x) * self.z * ZOOM_FACTOR + self.screen_width / 2,
+        .y = (point.y - self.y) * self.z * ZOOM_FACTOR + self.screen_height / 2
     };
 }

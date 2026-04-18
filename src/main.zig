@@ -31,7 +31,7 @@ var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 
 var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
-var camera: Camera = .init();
+var camera: Camera = .init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 fn get_window_size() rl.Vector2
 {
@@ -54,15 +54,13 @@ fn get_mouse_position() rl.Vector2
 
 fn get_mouse_world_position() rl.Vector2
 {
-    return camera.vector2_screen_to_world(get_mouse_position(), get_window_size());
+    return camera.vector2_screen_to_world(get_mouse_position());
 }
 
 fn get_screen_space_rect() rl.Rectangle
 {
-    const window_size = get_window_size();
-
-    const top_left = camera.vector2_screen_to_world(.{ .x = 0, .y = 0 }, window_size);
-    const bottom_right = camera.vector2_screen_to_world(window_size, window_size);
+    const top_left = camera.vector2_screen_to_world(.{ .x = 0, .y = 0 });
+    const bottom_right = camera.vector2_screen_to_world(get_window_size());
 
     return .{
         .x = top_left.x,
@@ -143,8 +141,6 @@ pub fn main() !void {
             rl.beginDrawing();
             defer rl.endDrawing();
 
-            
-
             rl.clearBackground(.{.r = 0, .g = 0, .b = 0, .a = 255});
 
             for (links.items) |link| {
@@ -152,11 +148,22 @@ pub fn main() !void {
             }
 
             const rect_size = camera.size_to_screen(1);
-            const rect_pos = camera.vector2_world_to_screen(.{ .x = 0, .y = 0 }, get_window_size());
-
-            rl.drawRectangleV(rect_pos, .{ .x = rect_size, .y = rect_size }, .red);
+            const rect_pos = camera.vector2_world_to_screen(.{ .x = 0, .y = 0 });
 
             const mouse_world_pos = get_mouse_world_position();
+
+            var color: rl.Color = undefined;
+
+            if(rl.checkCollisionPointRec(mouse_world_pos, .{ .x = 0, .y = 0, .width = 1, .height = 1}))
+            {
+                color = .pink;
+            }
+            else
+            {
+                color = .red;
+            }
+
+            rl.drawRectangleV(rect_pos, .{ .x = rect_size, .y = rect_size }, color);
 
             std.debug.print("{d}, {d}\n", .{mouse_world_pos.x, mouse_world_pos.y});
         }
