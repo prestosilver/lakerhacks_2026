@@ -1,6 +1,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+const Star = @import("Star.zig");
+
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 450;
 
