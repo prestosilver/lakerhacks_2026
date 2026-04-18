@@ -104,19 +104,19 @@ pub fn main() !void {
 
             if(rl.isKeyDown(.a))
             {
-                camera.x -= dt;
+                camera.x -= dt / camera.z;
             }
             if(rl.isKeyDown(.d))
             {
-                camera.x += dt;
+                camera.x += dt / camera.z;
             }
             if(rl.isKeyDown(.w))
             {
-                camera.y -= dt;
+                camera.y -= dt / camera.z;
             }
             if(rl.isKeyDown(.s))
             {
-                camera.y += dt;
+                camera.y += dt / camera.z;
             }
 
             const scroll = rl.getMouseWheelMoveV();
