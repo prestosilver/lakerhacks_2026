@@ -97,17 +97,19 @@ pub fn main() !void {
                 tick_acc -= TICK_RATE;
             }
 
+            const camera_move = dt * CAMERA_SPEED / camera.z;
+
             if (rl.isKeyDown(.a)) {
-                camera.x -= dt;
+                camera.x -= camera_move;
             }
             if (rl.isKeyDown(.d)) {
-                camera.x += dt;
+                camera.x += camera_move;
             }
             if (rl.isKeyDown(.w)) {
-                camera.y -= dt;
+                camera.y -= camera_move;
             }
             if (rl.isKeyDown(.s)) {
-                camera.y += dt;
+                camera.y += camera_move;
             }
 
             const scroll = rl.getMouseWheelMoveV();
