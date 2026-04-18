@@ -55,7 +55,7 @@ pub fn build(b: *std.Build) !void {
         run_step.dependOn(emrun_step);
     } else {
         const exe = b.addExecutable(.{
-            .name = "drawring",
+            .name = "lakerhacks_2026",
             .root_module = exe_mod,
         });
         b.installArtifact(exe);
