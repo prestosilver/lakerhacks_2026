@@ -64,9 +64,13 @@ pub fn main() !void {
             rl.beginDrawing();
             defer rl.endDrawing();
 
-            for (links.items) |link| {
+            rl.clearBackground(.{.r = 0, .g = 0, .b = 0, .a = 255});
+
+            for (links.items) |*link| {
                 link.draw();
             }
+
+            rl.drawRectangleV(.{ .x = 10, .y = 10 }, .{ .x = 100, .y = 100 }, .{ .r = 255, .g = 0, .b = 0, .a = 255 });
         }
     }
 }
