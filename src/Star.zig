@@ -76,6 +76,11 @@ cycle_speed: f32,
 /// Cycle timer.
 cycle_timer: f32,
 
+pub fn draw(self: *Star) void
+{
+    
+}
+
 pub fn init(x: u16, y: u16) Star
 {
     const star: Star = .{
@@ -92,7 +97,7 @@ pub fn init(x: u16, y: u16) Star
 
         .cycle_length = @floatFromInt(ryl.getRandomValue(10000, 30000)),
         .cycle_timer = @floatFromInt(ryl.getRandomValue(0, 30000)),
-        .cycle_speed = @floatFromInt(ryl.getRandomValue(1, 100)) / 10,
+        .cycle_speed = @as(f32, @floatFromInt(ryl.getRandomValue(1, 100))) / 10,
     };
 
     return star;
@@ -116,7 +121,7 @@ pub fn tick(self: *Star, links: std.ArrayList(Link)) void
         const o = other orelse continue;
 
         var linked: bool = false;
-        if(self.cycle_timer > o.cycle_timer and !link.toggle)
+        if(self.cycle_timer >= o.cycle_timer and !link.toggle)
         {
             linked = true;
             link.toggle = true;
