@@ -33,6 +33,45 @@ var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
 var camera: Camera = .init();
 
+fn get_window_size() rl.Vector2
+{
+    return .{
+        .x = @floatFromInt(SCREEN_WIDTH),
+        .y = @floatFromInt(SCREEN_HEIGHT)
+    };
+}
+
+fn get_mouse_position() rl.Vector2
+{
+    const mouse_pos_x = rl.getMouseX();
+    const mouse_pos_y = rl.getMouseY();
+
+    return .{
+        .x = @floatFromInt(mouse_pos_x),
+        .y = @floatFromInt(mouse_pos_y)
+    };
+}
+
+fn get_mouse_world_position() rl.Vector2
+{
+    return camera.vector2_screen_to_world(get_mouse_position(), get_window_size());
+}
+
+fn get_screen_space_rect() rl.Rectangle
+{
+    const window_size = get_window_size();
+
+    const top_left = camera.vector2_screen_to_world(.{ .x = 0, .y = 0 }, window_size);
+    const bottom_right = camera.vector2_screen_to_world(window_size, window_size);
+
+    return .{
+        .x = top_left.x,
+        .y = top_left.y,
+        .width = bottom_right.x - top_left.x,
+        .height = bottom_right.y - top_left.y
+    };
+}
+
 pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
     defer rl.closeWindow();
@@ -104,10 +143,7 @@ pub fn main() !void {
             rl.beginDrawing();
             defer rl.endDrawing();
 
-            const window_size: rl.Vector2 = .{
-                .x = @floatFromInt(SCREEN_WIDTH),
-                .y = @floatFromInt(SCREEN_HEIGHT)
-            };
+            
 
             rl.clearBackground(.{.r = 0, .g = 0, .b = 0, .a = 255});
 
@@ -115,26 +151,14 @@ pub fn main() !void {
                 link.draw();
             }
 
-            // std.debug.print("{d}, {d}, {d}\n", .{camera.x, camera.y, camera.z});
-
             const rect_size = camera.size_to_screen(1);
-            const rect_pos = camera.vector2_world_to_screen(.{ .x = 0, .y = 0 }, window_size);
-
-            // std.debug.print("{d}, {d}, {d}\n", .{rect_pos.x, rect_pos.y, rect_size});
-
-            const mouse_pos_x = rl.getMouseX();
-            const mouse_pos_y = rl.getMouseY();
-
-            const mouse_pos: rl.Vector2 = .{
-                .x = @floatFromInt(mouse_pos_x),
-                .y = @floatFromInt(mouse_pos_y)
-            };
-
-            const mouse_world_pos = camera.vector2_screen_to_world(mouse_pos, window_size);
-
-            std.debug.print("{d}, {d}\n", .{mouse_world_pos.x, mouse_world_pos.y});
+            const rect_pos = camera.vector2_world_to_screen(.{ .x = 0, .y = 0 }, get_window_size());
 
             rl.drawRectangleV(rect_pos, .{ .x = rect_size, .y = rect_size }, .red);
+
+            const mouse_world_pos = get_mouse_world_position();
+
+            std.debug.print("{d}, {d}\n", .{mouse_world_pos.x, mouse_world_pos.y});
         }
     }
 }
