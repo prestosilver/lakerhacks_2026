@@ -1,3 +1,4 @@
+const std = @import("std");
 const rl = @import("raylib");
 
 const ZOOM_FACTOR: f32 = 100;
@@ -8,6 +9,8 @@ x: f32,
 y: f32,
 z: f32,
 
+zoom_target: i32,
+
 screen_width: f32,
 screen_height: f32,
 
@@ -17,14 +20,51 @@ pub fn init(screen_width: f32, screen_height: f32) Camera
         .x = 0,
         .y = 0,
         .z = 1,
+        .zoom_target = 0,
         .screen_width = screen_width,
         .screen_height = screen_height
     };
 }
 
+pub fn get_screen_space_rect(self: Camera) rl.Rectangle
+{
+    const top_left = self.vector2_screen_to_world(.{ .x = 0, .y = 0 });
+    const bottom_right = self.vector2_screen_to_world(get_window_size(self));
+
+    return .{
+        .x = top_left.x,
+        .y = top_left.y,
+        .width = bottom_right.x - top_left.x,
+        .height = bottom_right.y - top_left.y
+    };
+}
+
+pub fn get_window_size(self: Camera) rl.Vector2
+{
+    return .{
+        .x = self.screen_width,
+        .y = self.screen_height
+    };
+}
+
+pub fn get_target_zoom(self: Camera) f32
+{
+    return std.math.pow(f32, 1.5, @floatFromInt(self.zoom_target));
+}
+
 pub fn size_to_screen(self: Camera, size: f32) f32
 {
     return size * self.z * ZOOM_FACTOR;
+}
+
+pub fn tick(self: *Camera) void
+{
+    const target = self.get_target_zoom();
+    if(self.z != target)
+    {
+        const diff = target - self.z;
+        self.z += diff / 3;
+    }
 }
 
 pub fn vector2_screen_to_world(self: Camera, point: rl.Vector2) rl.Vector2

@@ -1,9 +1,11 @@
 const std = @import("std");
-const ryl = @import("raylib");
+const rl = @import("raylib");
 
 const Link = @import("Link.zig");
+const Camera = @import("Camera.zig");
 
 const GRID_UNIT = 1;
+const RADIUS = 0.4;
 
 /// Contains quantities of all resources used.
 const StarResources = struct {
@@ -68,13 +70,23 @@ cycle_speed: f32,
 /// Cycle timer.
 cycle_timer: f32,
 
-pub fn draw(self: *const Star) void {
-    ryl.drawCircleV(
+pub fn draw(self: *const Star, camera: Camera) void {
+    const world_pos: rl.Vector2 = .{
+        .x = @floatFromInt(GRID_UNIT * self.x),
+        .y = @floatFromInt(GRID_UNIT * self.y),
+    };
+
+    const to_screen = camera.vector2_world_to_screen(world_pos);
+    const screen_size = camera.size_to_screen(RADIUS * GRID_UNIT * 2);
+
+    rl.drawRectangleLinesEx(
         .{
-            .x = @floatFromInt(GRID_UNIT * self.x + GRID_UNIT / 2),
-            .y = @floatFromInt(GRID_UNIT * self.y + GRID_UNIT / 2),
+            .x = to_screen.x,
+            .y = to_screen.y,
+            .width = screen_size,
+            .height = screen_size
         },
-        4,
+        2,
         .white,
     );
 }
@@ -85,19 +97,29 @@ pub fn init(x: u16, y: u16) Star {
         .y = y,
         .total_res = .{
             .population = 0,
-            .organic = @floatFromInt(ryl.getRandomValue(0, 1000)),
+            .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
             .energy = 0,
-            .mineral = @floatFromInt(ryl.getRandomValue(0, 60)),
+            .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
         },
         .gen_res = .init_zero(),
         .req_res = .init_zero(),
 
-        .cycle_length = @floatFromInt(ryl.getRandomValue(10000, 30000)),
-        .cycle_timer = @floatFromInt(ryl.getRandomValue(0, 30000)),
-        .cycle_speed = @as(f32, @floatFromInt(ryl.getRandomValue(1, 100))) / 10,
+        .cycle_length = @floatFromInt(rl.getRandomValue(10000, 30000)),
+        .cycle_timer = @floatFromInt(rl.getRandomValue(0, 30000)),
+        .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10,
     };
 
     return star;
+}
+
+pub fn getRectangle(self: Star) rl.Rectangle
+{
+    return .{
+        .x = @floatFromInt(GRID_UNIT * self.x),
+        .y = @floatFromInt(GRID_UNIT * self.y),
+        .width = GRID_UNIT * RADIUS * 2,
+        .height = GRID_UNIT * RADIUS * 2
+    };
 }
 
 /// Called once every tick.

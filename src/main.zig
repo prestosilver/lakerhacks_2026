@@ -33,14 +33,6 @@ var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 
 var camera: Camera = .init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-fn get_window_size() rl.Vector2
-{
-    return .{
-        .x = @floatFromInt(SCREEN_WIDTH),
-        .y = @floatFromInt(SCREEN_HEIGHT)
-    };
-}
-
 fn get_mouse_position() rl.Vector2
 {
     const mouse_pos_x = rl.getMouseX();
@@ -55,19 +47,6 @@ fn get_mouse_position() rl.Vector2
 fn get_mouse_world_position() rl.Vector2
 {
     return camera.vector2_screen_to_world(get_mouse_position());
-}
-
-fn get_screen_space_rect() rl.Rectangle
-{
-    const top_left = camera.vector2_screen_to_world(.{ .x = 0, .y = 0 });
-    const bottom_right = camera.vector2_screen_to_world(get_window_size());
-
-    return .{
-        .x = top_left.x,
-        .y = top_left.y,
-        .width = bottom_right.x - top_left.x,
-        .height = bottom_right.y - top_left.y
-    };
 }
 
 pub fn main() !void {
@@ -92,6 +71,9 @@ pub fn main() !void {
 
     const blip: rl.Sound = try rl.loadSound("cont/blip_1.ogg");
     _ = blip;
+
+    camera.x = (GRID_SIZE / 2);
+    camera.y = (GRID_SIZE / 2);
 
     { // WORLD GEN NERDS
         for (0..STAR_COUNT) |_| {
@@ -133,7 +115,7 @@ pub fn main() !void {
             const scroll = rl.getMouseWheelMoveV();
             if(scroll.y != 0)
             {
-                camera.z += scroll.y / 10;
+                camera.zoom_target += scroll.y;
             }
         }
 
@@ -145,6 +127,14 @@ pub fn main() !void {
 
             for (links.items) |link| {
                 link.draw();
+            }
+
+            const screen_bounds = camera.get_screen_space_rect();
+
+            for (stars_aux.items) |star| 
+            {
+                if(rl.checkCollisionRecs(star.getRectangle(), screen_bounds))
+                    star.draw(camera);
             }
 
             const rect_size = camera.size_to_screen(1);
