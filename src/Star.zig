@@ -78,7 +78,7 @@ cycle_timer: f32,
 
 pub fn draw(self: *Star) void
 {
-    
+     _ = self;
 }
 
 pub fn init(x: u16, y: u16) Star

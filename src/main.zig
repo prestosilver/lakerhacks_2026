@@ -62,6 +62,8 @@ pub fn main() !void {
             for (links.items) |link| {
                 link.draw();
             }
+
+            rl.drawRectangleV(.{ .x = 10, .y = 10 }, .{ .x = 100, .y = 100 }, .{ .r = 255, .g = 0, .b = 0, .a = 255 });
         }
     }
 }
