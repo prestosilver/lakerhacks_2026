@@ -164,20 +164,8 @@ pub fn main() !void {
                     star.draw(camera);
             }
 
-            const rect_size = camera.size_to_screen(1);
-            const rect_pos = camera.vector2_world_to_screen(.{ .x = 0, .y = 0 });
+            // const mouse_world_pos = get_mouse_world_position();
 
-            const mouse_world_pos = get_mouse_world_position();
-
-            var color: rl.Color = undefined;
-
-            if (rl.checkCollisionPointRec(mouse_world_pos, .{ .x = 0, .y = 0, .width = 1, .height = 1 })) {
-                color = .pink;
-            } else {
-                color = .red;
-            }
-
-            rl.drawRectangleV(rect_pos, .{ .x = rect_size, .y = rect_size }, color);
         }
     }
 }
