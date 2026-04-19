@@ -75,6 +75,11 @@ fn generate_world(camera: *Camera) void {
 
         stars_aux.items[host_star].setOwner(cur_faction);
 
+        stars_aux.items[host_star].total_res.population = @floatFromInt(rl.getRandomValue(10, 20));
+        stars_aux.items[host_star].total_res.organic = @floatFromInt(rl.getRandomValue(40, 80));
+        stars_aux.items[host_star].total_res.energy = @floatFromInt(rl.getRandomValue(150, 200));
+        stars_aux.items[host_star].total_res.mineral = @floatFromInt(rl.getRandomValue(20, 30));
+
         const faction: Faction = .init(stars_aux.items[host_star]);
         factions_aux.appendAssumeCapacity(faction);
 
@@ -114,9 +119,9 @@ pub fn draw(camera: Camera) void {
 
     const screen_bounds = camera.get_screen_space_rect();
 
-    for (stars_aux.items) |star| {
+    for (stars_aux.items, 0..) |star, i| {
         if (rl.checkCollisionRecs(star.getGridRectangle(), screen_bounds))
-            star.draw(camera);
+            star.draw(camera, star_selection != null and i == star_selection.?);
     }
 }
 

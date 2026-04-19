@@ -82,7 +82,7 @@ faction_color: rl.Color = .blank,
 
 mouse_hovering: bool,
 
-pub fn draw(self: *const Star, camera: Camera) void {
+pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
     const world_pos: rl.Vector2 = .{
         .x = @floatFromInt(GRID_UNIT * self.x),
         .y = @floatFromInt(GRID_UNIT * self.y),
@@ -111,6 +111,11 @@ pub fn draw(self: *const Star, camera: Camera) void {
 
     if (self.mouse_hovering) {
         rl.drawRectangleRec(outline_screen_pos, .{ .r = 255, .g = 255, .b = 255, .a = 200 });
+    }
+    
+    if (is_selected)
+    {
+        rl.drawRectangleLinesEx(outline_screen_pos, 3, .white);
     }
 
     const grid_rectangle_world = self.getGridRectangle();
@@ -143,12 +148,10 @@ pub fn draw(self: *const Star, camera: Camera) void {
 }
 
 pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
-    const star: Star = .{ .texture = texture, .x = x, .y = y, .total_res = .{
-        .population = 0,
-        .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
-        .energy = 0,
-        .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
-    }, .gen_res = .init_zero(), .req_res = .init_zero(), .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)), .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)), .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10, .owner = 0, .mouse_hovering = false };
+    const star: Star = .{ .texture = texture, .x = x, .y = y,
+    .total_res = .init_zero(), .gen_res = .init_zero(), .req_res = .init_zero(),
+    .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)), .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)),
+    .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10, .owner = 0, .mouse_hovering = false };
 
     return star;
 }
@@ -194,7 +197,9 @@ pub fn setOwner(self: *Star, owner: usize) void {
 
 fn setGenRes(self: *Star) void
 {
-    
+    self.gen_res.organic = self.total_res.population / 100;
+    self.gen_res.energy = self.total_res.population / 100 + self.total_res.organic / 200 + self.total_res.mineral / 50;
+    self.gen_res.mineral = self.total_res.population / 200 + self.total_res.energy / 200;
 }
 
 /// Called once every tick.

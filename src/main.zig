@@ -70,14 +70,17 @@ pub fn main() !void {
     var star_has_text = ui.ResourceLabel{
         .height = 24,
         .desc = "Has",
+        .show_change = false
     };
     var star_makes_text = ui.ResourceLabel{
         .height = 24,
         .desc = "Makes",
+        .show_change = true
     };
     var star_uses_text = ui.ResourceLabel{
         .height = 24,
         .desc = "Uses",
+        .show_change = true
     };
     var destroy_button = ui.Button{
         .height = 24,
