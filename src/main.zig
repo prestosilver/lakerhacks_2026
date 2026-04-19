@@ -9,6 +9,8 @@ const Link = @import("Link.zig");
 const Camera = @import("Camera.zig");
 const Faction = @import("Faction.zig");
 
+const ui = @import("ui.zig");
+
 const SCREEN_WIDTH = 800;
 const SCREEN_HEIGHT = 800;
 
@@ -49,7 +51,7 @@ pub fn main() !void {
 
         rl.clearBackground(.white);
     }
-    
+
     rl.setTargetFPS(60);
     rl.setExitKey(.null);
 
@@ -58,8 +60,22 @@ pub fn main() !void {
 
     try assets.init();
     defer assets.deinit();
-   
+
     world.init(&camera);
+
+    var test_panel = ui.Panel{
+        .children = &.{},
+        .bounds = .{
+            .x = 10,
+            .y = 10,
+            .width = 300,
+            .height = SCREEN_HEIGHT - 20,
+        },
+    };
+
+    const ui_elements = [_]ui.UIElement{
+        .init(&test_panel),
+    };
 
     var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
@@ -115,8 +131,10 @@ pub fn main() !void {
             defer rl.endDrawing();
 
             world.draw(camera);
-
             
+            for (ui_elements) |element| {
+                element.draw();
+            }
         }
     }
 }
