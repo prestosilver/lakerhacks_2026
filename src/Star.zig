@@ -162,12 +162,7 @@ pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
         .y = y,
         .center_x = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
         .center_y = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
-        .total_res = .{
-            .population = 0,
-            .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
-            .energy = 0,
-            .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
-        },
+        .total_res = .init_zero(),
         .gen_res = .init_zero(),
         .req_res = .init_zero(),
         .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
@@ -226,16 +221,11 @@ pub fn setOwner(self: *Star, owner: usize) void {
 
 fn setGenRes(self: *Star) void
 {
-    self.gen_res.organic = self.total_res.energy / 500000 - self.total_res.population / 100000;
-    self.gen_res.energy = self.total_res.population * (self.total_res.organic / 200000 + self.total_res.mineral / 50000) - self.total_res.population / 50000;
-    self.gen_res.mineral = self.total_res.population * (self.total_res.energy / 200000) - self.total_res.population / 100000;
+    self.gen_res.energy = 0.05 - self.total_res.population / 2500 + (self.total_res.organic + self.total_res.mineral) / 10000;
 
-    if(self.total_res.energy > 100)
-    {
-        self.gen_res.energy /= self.total_res.energy - 99;
-    }
-
-    self.gen_res.population = self.total_res.population * (self.total_res.organic / 20000 + self.total_res.energy / 100000);
+    self.gen_res.population = self.total_res.organic / 5000;
+    self.gen_res.mineral = self.total_res.population / 10000;
+    self.gen_res.organic = self.total_res.energy / 5000 - self.total_res.population / 500;
 }
 
 /// Called once every tick.
