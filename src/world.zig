@@ -22,6 +22,7 @@ var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 
 var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 var stars_aux: std.ArrayList(*Star) = undefined;
+var star_selection: usize = undefined;
 
 var factions_aux_buffer: [MAX_FACTION_COUNT]Faction = undefined;
 var factions_aux: std.ArrayList(Faction) = undefined;
@@ -67,8 +68,6 @@ fn generate_world(camera: *Camera) void
             host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
         }
 
-        std.debug.print("{d}\n", .{host_star});
-
         stars_aux.items[host_star].setOwner(host_star);
 
         const faction: Faction = .init(stars_aux.items[host_star]);
@@ -79,6 +78,8 @@ fn generate_world(camera: *Camera) void
             const star_pos = stars_aux.items[host_star].getStarWorldPos(true);
             camera.x = star_pos.x;
             camera.y = star_pos.y;
+
+            std.debug.print("{d}, {d}\n", .{camera.x, camera.y});
         }
 
         cur_faction += 1;
@@ -113,6 +114,8 @@ pub fn init(camera: *Camera) void
 
     stars_aux = .initBuffer(&stars_aux_buffer);
     factions_aux = .initBuffer(&factions_aux_buffer);
+
+    star_selection = 0;
 
     generate_world(camera);
 }

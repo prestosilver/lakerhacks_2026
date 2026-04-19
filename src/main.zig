@@ -107,7 +107,6 @@ pub fn main() !void {
             world.draw(camera);
 
             // const mouse_world_pos = get_mouse_world_position();
-
         }
     }
 }
