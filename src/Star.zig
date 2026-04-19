@@ -60,6 +60,9 @@ texture: *const rl.Texture,
 x: u16,
 y: u16,
 
+center_x: f32,
+center_y: f32,
+
 /// Total resources that the star system could have/produce.
 total_res: StarResources,
 /// Resources generated every tick.
@@ -84,8 +87,8 @@ mouse_hovering: bool,
 
 pub fn draw(self: *const Star, camera: Camera) void {
     const world_pos: rl.Vector2 = .{
-        .x = @floatFromInt(GRID_UNIT * self.x),
-        .y = @floatFromInt(GRID_UNIT * self.y),
+        .x = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x,
+        .y = @as(f32, @floatFromInt(GRID_UNIT * self.y)) + self.center_y,
     };
 
     const to_screen = camera.vector2_world_to_screen(world_pos);
@@ -138,17 +141,36 @@ pub fn draw(self: *const Star, camera: Camera) void {
         .white,
     );
 
-    //if (@import("builtin").mode == .Debug)
-    //rl.drawRectangleLinesEx(screen_pos, 2, .blue);
+    // if (@import("builtin").mode == .Debug)
+    //     rl.drawRectangleLinesEx(.{
+    //         .x = grid_pos_screen.x,
+    //         .y = grid_pos_screen.y,
+    //         .width = grid_size_screen,
+    //         .height = grid_size_screen,
+    //     }, 2, .blue);
 }
 
 pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
-    const star: Star = .{ .texture = texture, .x = x, .y = y, .total_res = .{
-        .population = 0,
-        .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
-        .energy = 0,
-        .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
-    }, .gen_res = .init_zero(), .req_res = .init_zero(), .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)), .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)), .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10, .owner = 0, .mouse_hovering = false };
+    const star: Star = .{
+        .texture = texture,
+        .x = x,
+        .y = y,
+        .center_x = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
+        .center_y = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
+        .total_res = .{
+            .population = 0,
+            .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
+            .energy = 0,
+            .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
+        },
+        .gen_res = .init_zero(),
+        .req_res = .init_zero(),
+        .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
+        .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)),
+        .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10,
+        .owner = 0,
+        .mouse_hovering = false,
+    };
 
     return star;
 }
@@ -166,13 +188,18 @@ pub fn getFactionColor(self: Star) rl.Color {
 }
 
 pub fn getGridRectangle(self: Star) rl.Rectangle {
-    return .{ .x = @floatFromInt(GRID_UNIT * self.x), .y = @floatFromInt(GRID_UNIT * self.y), .width = GRID_UNIT, .height = GRID_UNIT };
+    return .{
+        .x = @floatFromInt(GRID_UNIT * self.x),
+        .y = @floatFromInt(GRID_UNIT * self.y),
+        .width = GRID_UNIT,
+        .height = GRID_UNIT,
+    };
 }
 
 pub fn getStarRectangle(self: Star) rl.Rectangle {
     return .{
-        .x = @floatFromInt(GRID_UNIT * self.x),
-        .y = @floatFromInt(GRID_UNIT * self.y),
+        .x = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x,
+        .y = @as(f32, @floatFromInt(GRID_UNIT * self.y)) + self.center_y,
         .width = GRID_UNIT * RADIUS * 2,
         .height = GRID_UNIT * RADIUS * 2,
     };

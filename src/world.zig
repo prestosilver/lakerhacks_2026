@@ -205,6 +205,28 @@ pub fn tick() void {
         link.tick();
 }
 
+pub fn beginLink() void {
+    if (star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1)
+        ui_mode = .Linking;
+
+    if (ui_mode == .ConfirmLink) {
+        const cost = getLinkMineralCost(star_selection.?, focused_star.?);
+
+        if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
+            linkStars(star_selection.?, focused_star.?);
+        }
+    }
+}
+
+pub fn cancelLink() void {
+    if (ui_mode == .Linking)
+        ui_mode = .Game;
+    if (ui_mode == .ConfirmLink) {
+        focused_star = null;
+        ui_mode = .Game;
+    }
+}
+
 pub fn updateInput(input: UserInput) void {
     if (input.rmb) {
         star_selection = null;
@@ -229,28 +251,5 @@ pub fn updateInput(input: UserInput) void {
                 }
             }
         }
-    }
-
-    switch (ui_mode) {
-        .Game => {
-            if (star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1 and rl.isKeyPressed(.kp_1)) {
-                ui_mode = .Linking;
-            }
-        },
-        .Linking => {
-            if (rl.isKeyPressed(.escape)) {
-                ui_mode = .Game;
-            }
-        },
-        .ConfirmLink => {
-            const cost = getLinkMineralCost(star_selection.?, focused_star.?);
-
-            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
-                linkStars(star_selection.?, focused_star.?);
-            } else if (rl.isKeyPressed(.escape)) {
-                focused_star = null;
-                ui_mode = .Game;
-            }
-        },
     }
 }
