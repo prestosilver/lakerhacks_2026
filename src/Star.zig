@@ -212,8 +212,8 @@ pub fn getStarRectangle(self: Star) rl.Rectangle {
 
 pub fn getStarWorldPos(self: Star, centered: bool) rl.Vector2 {
     if (centered) {
-        const x: f32 = @floatFromInt(GRID_UNIT * self.x);
-        const y: f32 = @floatFromInt(GRID_UNIT * self.y);
+        const x: f32 = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x;
+        const y: f32 = @as(f32, @floatFromInt(GRID_UNIT * self.y)) + self.center_y;
 
         return .{ .x = x + RADIUS, .y = y + RADIUS };
     } else return .{ .x = @floatFromInt(GRID_UNIT * self.x), .y = @floatFromInt(GRID_UNIT * self.y) };
