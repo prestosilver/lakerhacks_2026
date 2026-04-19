@@ -241,35 +241,11 @@ pub fn setOwner(self: *Star, owner: usize) void
 }
 
 /// Called once every tick.
-pub fn tick(self: *Star, links: std.ArrayList(Link)) void {
-    for (links.items) |*link| {
-        var other: ?*Star = null;
-        if (link.a == self) {
-            other = link.b;
-        } else if (link.b == self) {
-            other = link.a;
-        }
-
-        const o = other orelse continue;
-
-        var linked: bool = false;
-        if (self.cycle_timer >= o.cycle_timer and !link.toggle) {
-            linked = true;
-            link.toggle = true;
-        } else if (self.cycle_timer < o.cycle_timer and link.toggle) {
-            linked = true;
-            link.toggle = false;
-        }
-
-        if (!linked) continue;
-
-        if (!o.req_res.is_zero()) {
-            //TODO: Swap resources & other stuff.
-        }
-    }
-
-    self.cycle_timer += 1;
-    if (self.cycle_timer >= self.cycle_length) {
+pub fn tick(self: *Star) void
+{
+    self.cycle_timer += self.cycle_speed;
+    if(self.cycle_timer >= self.cycle_length)
+    {
         self.cycle_timer -= self.cycle_length;
     }
 }

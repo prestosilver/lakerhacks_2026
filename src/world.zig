@@ -40,8 +40,11 @@ pub const UserInput = struct
 
 pub const UIMode = enum
 {
-    Game
+    Game,
+    Linking
 };
+
+pub var ui_mode: UIMode = undefined;
 
 fn generate_world(camera: *Camera) void
 {
@@ -111,7 +114,7 @@ pub fn draw(camera: Camera) void
     rl.clearBackground(.{ .r = 0, .g = 0, .b = 0, .a = 255 });
 
     for (links.items) |link| {
-        link.draw();
+        link.draw(camera);
     }
 
     const screen_bounds = camera.get_screen_space_rect();
@@ -132,18 +135,32 @@ pub fn init(camera: *Camera) void
     star_selection = -1;
     focused_star = -1;
 
+    ui_mode = .Game;
+
     generate_world(camera);
+}
+
+fn linkStars(index_a: usize, index_b: usize) void
+{
+    const link: Link = .init(stars_aux.items[index_a], stars_aux.items[index_b]);
+    links.appendAssumeCapacity(link);
+
+    star_selection = @intCast(index_a);
+    ui_mode = .Game;
 }
 
 fn selectStar(index: usize) void
 {
-    star_selection = index;
+    star_selection = @intCast(index);
 }
 
 pub fn tick() void
 {
     for (stars_aux.items) |star|
-        star.tick(links);
+        star.tick();
+
+    for (links.items) |*link|
+        link.tick();
 }
 
 pub fn updateInput(input: UserInput) void
@@ -152,6 +169,8 @@ pub fn updateInput(input: UserInput) void
     {
         star_selection = -1;
         focused_star = -1;
+
+        ui_mode = .Game;
     }
 
     for (stars_aux.items, 0..) |star, i|
@@ -162,8 +181,22 @@ pub fn updateInput(input: UserInput) void
             star.mouse_hovering = true;
             if(input.lmb)
             {
-                selectStar(i);
+                switch(ui_mode)
+                {
+                    .Game => selectStar(i),
+                    .Linking =>
+                    {
+                        std.debug.assert(star_selection != -1);
+                        linkStars(i, @intCast(star_selection));
+                    }
+                }
             }
         }
+    }
+
+    if(star_selection != -1 and rl.isKeyPressed(.kp_1))
+    {
+        std.debug.print("{s}\n", .{"Hello?"});
+        ui_mode = .Linking;
     }
 }
