@@ -22,7 +22,9 @@ var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 
 var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 var stars_aux: std.ArrayList(*Star) = undefined;
-var star_selection: usize = undefined;
+
+var star_selection: isize = undefined;
+var focused_star: isize = undefined;
 
 var factions_aux_buffer: [MAX_FACTION_COUNT]Faction = undefined;
 var factions_aux: std.ArrayList(Faction) = undefined;
@@ -34,6 +36,11 @@ pub const UserInput = struct
     mouse_world_pos: rl.Vector2,
     lmb: bool,
     rmb: bool
+};
+
+pub const UIMode = enum
+{
+    Game
 };
 
 fn generate_world(camera: *Camera) void
@@ -122,7 +129,8 @@ pub fn init(camera: *Camera) void
     stars_aux = .initBuffer(&stars_aux_buffer);
     factions_aux = .initBuffer(&factions_aux_buffer);
 
-    star_selection = 0;
+    star_selection = -1;
+    focused_star = -1;
 
     generate_world(camera);
 }
@@ -140,6 +148,12 @@ pub fn tick() void
 
 pub fn updateInput(input: UserInput) void
 {
+    if(input.rmb)
+    {
+        star_selection = -1;
+        focused_star = -1;
+    }
+
     for (stars_aux.items, 0..) |star, i|
     {
         star.mouse_hovering = false;
