@@ -91,15 +91,25 @@ pub fn main() !void {
         .on_click = &world.cancelLink,
     };
 
+    var button_panel = ui.Panel{
+        .vertical = false,
+        .children = &.{
+            .init(&link_button),
+            .init(&cancel_button),
+        },
+        .padding = 0,
+        .spacing = 5,
+    };
+
     var star_panel = ui.Panel{
         .children = &.{
             .init(&star_has_text),
             .init(&star_makes_text),
             .init(&star_uses_text),
-            .init(&link_button),
-            .init(&cancel_button),
+            .init(&button_panel),
         },
         .padding = 20,
+        .spacing = 5,
     };
 
     const ui_elements = [_]ui.UIElement{
