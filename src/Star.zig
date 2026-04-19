@@ -269,7 +269,7 @@ pub fn tick(self: *Star) void {
         self.total_res.population = 0;
     }
 
-    if(self.total_res.population <= 1)
+    if(self.total_res.population <= 1 and self.owner != 0)
     {
         self.collapse();
     }
