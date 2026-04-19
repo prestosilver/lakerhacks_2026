@@ -68,7 +68,9 @@ pub const UIElement = struct {
 };
 
 pub const Panel = struct {
+    vertical: bool = true,
     children: []const UIElement,
+    spacing: f32 = 0,
     padding: f32,
 
     pub fn update(self: *Panel, dt: f32, mouse: rl.Vector2) void {
@@ -79,7 +81,13 @@ pub const Panel = struct {
 
             child.update(dt, mouse.subtract(elem_offset));
 
-            elem_offset.y += child_size.y;
+            if (self.vertical) {
+                elem_offset.y += child_size.y;
+                elem_offset.y += self.spacing;
+            } else {
+                elem_offset.x += child_size.x;
+                elem_offset.x += self.spacing;
+            }
         }
     }
 
@@ -101,18 +109,33 @@ pub const Panel = struct {
 
             child.draw(elem_offset);
 
-            elem_offset.y += child_size.y;
+            if (self.vertical) {
+                elem_offset.y += child_size.y;
+                elem_offset.y += self.spacing;
+            } else {
+                elem_offset.x += child_size.x;
+                elem_offset.x += self.spacing;
+            }
         }
     }
 
     pub fn size(self: *const Panel) rl.Vector2 {
-        var self_size: rl.Vector2 = .{ .x = self.padding * 2, .y = self.padding };
+        var self_size: rl.Vector2 = .{ .x = self.padding, .y = self.padding };
         for (self.children) |child| {
             const child_size = child.size();
-            self_size.y += child_size.y;
-            self_size.x = @max(self_size.x, self.padding * 2 + child_size.x);
+
+            if (self.vertical) {
+                self_size.y += child_size.y + self.spacing;
+                self_size.x = @max(self_size.x, self.padding * 2 + child_size.x);
+            } else {
+                self_size.x += child_size.x + self.spacing;
+                self_size.y = @max(self_size.y, self.padding * 2 + child_size.y);
+            }
         }
 
+        self_size.x -= self.spacing;
+        self_size.y -= self.spacing;
+        self_size.x += self.padding;
         self_size.y += self.padding;
 
         return self_size;
