@@ -138,8 +138,11 @@ pub fn drawUI(camera: Camera) void {
 
         const can_str = "Press enter to confirm.";
         const cant_str = "Your star doesn't have enough.";
+        const own_str = "This star is already owned by a faction.";
 
-        const res = if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str;
+        const fs = stars_aux.items[focused_star.?];
+
+        const res = if(fs.owner != 0) own_str else (if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str);
 
         var line_buf: [128:0]u8 = undefined;
         const str = std.fmt.bufPrintZ(
@@ -198,6 +201,36 @@ pub fn linkStars(index_a: usize, index_b: usize) void {
     links.appendAssumeCapacity(link);
 
     stars_aux.items[index_b].setOwner(stars_aux.items[index_a].owner);
+}
+
+pub fn reqLessPop() void
+{
+    stars_aux.items[star_selection.?].req_res.population -= 0.25;
+}
+
+pub fn reqMorePop() void
+{
+    stars_aux.items[star_selection.?].req_res.population += 0.25;
+}
+
+pub fn reqLessOrg() void
+{
+    stars_aux.items[star_selection.?].req_res.organic -= 0.25;
+}
+
+pub fn reqMoreOrg() void
+{
+    stars_aux.items[star_selection.?].req_res.organic += 0.25;
+}
+
+pub fn reqLessMin() void
+{
+    stars_aux.items[star_selection.?].req_res.mineral -= 0.25;
+}
+
+pub fn reqMoreMin() void
+{
+    stars_aux.items[star_selection.?].req_res.mineral += 0.25;
 }
 
 fn selectStar(index: usize) void {
@@ -304,8 +337,9 @@ pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_posit
         },
         .ConfirmLink => {
             const cost = getLinkMineralCost(star_selection.?, focused_star.?);
+            const fs = stars_aux.items[focused_star.?];
 
-            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
+            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost)) and fs.owner == 0) {
                 linkStars(star_selection.?, focused_star.?);
                 focused_star = null;
                 ui_mode = .Game;

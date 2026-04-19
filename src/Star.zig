@@ -85,6 +85,21 @@ faction_color: rl.Color = .blank,
 
 mouse_hovering: bool,
 
+pub fn collapse(self: *Star) void
+{
+    self.setOwner(0);
+
+    self.gen_res = .init_zero();
+    self.req_res = .init_zero();
+
+    self.total_res = .{
+        .population = 0,
+        .energy = 0,
+        .organic = @floatFromInt(rl.getRandomValue(60, 100)),
+        .mineral = 0
+    };
+}
+
 pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
     const world_pos: rl.Vector2 = .{
         .x = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x,
@@ -162,7 +177,12 @@ pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
         .y = y,
         .center_x = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
         .center_y = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
-        .total_res = .init_zero(),
+        .total_res = .{
+            .population = 0,
+            .energy = 0,
+            .organic = @floatFromInt(rl.getRandomValue(60, 100)),
+            .mineral = 0
+        },
         .gen_res = .init_zero(),
         .req_res = .init_zero(),
         .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
@@ -230,21 +250,28 @@ fn setGenRes(self: *Star) void
 
 /// Called once every tick.
 pub fn tick(self: *Star) void {
-    self.setGenRes();
-    self.total_res.add(self.gen_res);
-
-    if(self.total_res.organic <= 0)
+    if(self.owner != 0)
     {
-        // Population dies, Star loses owner.
-        self.owner = 0;
-        self.total_res.population = 0;
+        self.setGenRes();
+        self.total_res.add(self.gen_res);
     }
 
     if(self.total_res.energy <= 0)
     {
         // Blackouts ensue, people die.
-        self.total_res.population -= 1;
+        self.total_res.population -= 0.001;
         self.total_res.energy = 0;
+    }
+
+    if(self.total_res.organic <= 1)
+    {
+        // Population dies, Star loses owner.
+        self.total_res.population = 0;
+    }
+
+    if(self.total_res.population <= 1)
+    {
+        self.collapse();
     }
 
     if(self.total_res.mineral <= 0)

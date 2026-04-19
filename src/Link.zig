@@ -64,9 +64,68 @@ pub fn tick(self: *Link) void {
         // std.debug.print("{s} ({d}:{d})\n", .{"Link!", a.cycle_timer, b.cycle_timer});
 
         a.total_res.energy -= 1;
-        a.total_res.population -= 1;
-        
         b.total_res.energy -= 1;
+
+        const pop_diff = a.req_res.population - b.req_res.population;
+        const org_diff = a.req_res.organic - b.req_res.organic;
+        const min_diff = a.req_res.mineral - b.req_res.mineral;
+
+        if(pop_diff > 0)
+        {
+            // B donating to A.
+            if(b.total_res.population > pop_diff)
+            {
+                b.total_res.population -= pop_diff;
+                a.total_res.population += pop_diff;
+            }
+        }
+        else if(pop_diff < 0)
+        {
+            // A donating to B.
+            if(a.total_res.population > @abs(pop_diff))
+            {
+                b.total_res.population -= pop_diff;
+                a.total_res.population += pop_diff;
+            }
+        }
+
+        if(org_diff > 0)
+        {
+            // B donating to A.
+            if(b.total_res.organic > org_diff)
+            {
+                b.total_res.organic -= org_diff;
+                a.total_res.organic += org_diff;
+            }
+        }
+        else if(org_diff < 0)
+        {
+            // A donating to B.
+            if(a.total_res.organic > @abs(org_diff))
+            {
+                b.total_res.organic -= org_diff;
+                a.total_res.organic += org_diff;
+            }
+        }
+
+        if(min_diff > 0)
+        {
+            // B donating to A.
+            if(b.total_res.mineral > min_diff)
+            {
+                b.total_res.mineral -= min_diff;
+                a.total_res.mineral += min_diff;
+            }
+        }
+        else if(min_diff < 0)
+        {
+            // A donating to B.
+            if(a.total_res.mineral > @abs(min_diff))
+            {
+                b.total_res.mineral -= min_diff;
+                a.total_res.mineral += min_diff;
+            }
+        }
 
         if (a.owner == 1 or b.owner == 1) {
             const pitch: f32 = switch (self.sound_pitch) {
