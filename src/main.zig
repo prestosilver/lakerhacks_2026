@@ -131,6 +131,7 @@ pub fn main() !void {
             defer rl.endDrawing();
 
             world.draw(camera);
+            world.drawUI(camera);
 
             //for (ui_elements) |element| {
                 //element.draw();

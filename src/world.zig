@@ -23,8 +23,8 @@ var link_buffer: [MAX_LINK_COUNT]Link = undefined;
 var stars_aux_buffer: [STAR_COUNT]*Star = undefined;
 var stars_aux: std.ArrayList(*Star) = undefined;
 
-var star_selection: isize = undefined;
-var focused_star: isize = undefined;
+var star_selection: ?usize = undefined;
+var focused_star: ?usize = undefined;
 
 var factions_aux_buffer: [MAX_FACTION_COUNT]Faction = undefined;
 var factions_aux: std.ArrayList(Faction) = undefined;
@@ -41,7 +41,8 @@ pub const UserInput = struct
 pub const UIMode = enum
 {
     Game,
-    Linking
+    Linking,
+    ConfirmLink
 };
 
 pub var ui_mode: UIMode = undefined;
@@ -111,6 +112,19 @@ pub fn draw(camera: Camera) void
 {
     rl.clearBackground(.{ .r = 0, .g = 0, .b = 0, .a = 255 });
 
+    if(ui_mode == .ConfirmLink)
+    {
+        const star_pos_a = stars_aux.items[star_selection.?].getStarWorldPos(true);
+        const star_pos_b = stars_aux.items[focused_star.?].getStarWorldPos(true);
+
+        const star_screen_a = camera.vector2_world_to_screen(star_pos_a);
+        const star_screen_b = camera.vector2_world_to_screen(star_pos_b);
+
+        std.debug.print("{d}, {d}\n", .{star_screen_a.x, star_screen_a.y});
+
+        rl.drawLineEx(star_screen_a, star_screen_b, 2, .pink);
+    }
+
     for (links.items) |link| {
         link.draw(camera);
     }
@@ -123,6 +137,43 @@ pub fn draw(camera: Camera) void
     }
 }
 
+pub fn drawUI(camera: Camera) void
+{
+    if(ui_mode == .Linking)
+    {
+        rl.drawText("Linking stars...", 15, @intFromFloat(camera.screen_height - 45), 30, .white);
+    }
+    else if(ui_mode == .ConfirmLink)
+    {
+        const cost = getLinkMineralCost(star_selection.?, focused_star.?);
+
+        var line_buf: [128:0]u8 = undefined;
+        const str = std.fmt.bufPrintZ(&line_buf, "This link will cost {d} minerals.\nPress enter to confirm.",
+        .{cost},) catch |err|
+        {
+            std.debug.print("Error: {}.\n", .{err});
+            @panic("Somehow, you exceeded the 128-byte buffer. Congrats, I guess");
+        };
+
+        rl.drawText(str, 15, @intFromFloat(camera.screen_height - 75), 30, .pink);
+    }
+}
+
+fn getLinkMineralCost(index_a: usize, index_b: usize) u32
+{
+    const a = stars_aux.items[index_a];
+    const b = stars_aux.items[index_b];
+
+    const a_pos = a.getStarWorldPos(false);
+    const b_pos = b.getStarWorldPos(false);
+
+    const distance = std.math.sqrt(std.math.pow(f32, a_pos.x - b_pos.x, 2) + std.math.pow(f32, a_pos.y - b_pos.y, 2));
+
+    const cost = std.math.pow(f32, 1.5, distance);
+
+    return @intFromFloat(@floor(cost));
+}
+
 pub fn init(camera: *Camera) void
 {
     links = .initBuffer(&link_buffer);
@@ -130,8 +181,8 @@ pub fn init(camera: *Camera) void
     stars_aux = .initBuffer(&stars_aux_buffer);
     factions_aux = .initBuffer(&factions_aux_buffer);
 
-    star_selection = -1;
-    focused_star = -1;
+    star_selection = null;
+    focused_star = null;
 
     ui_mode = .Game;
 
@@ -140,17 +191,20 @@ pub fn init(camera: *Camera) void
 
 fn linkStars(index_a: usize, index_b: usize) void
 {
+    stars_aux.items[index_a].total_res.mineral -= @floatFromInt(getLinkMineralCost(index_a, index_b));
+
     const link: Link = .init(stars_aux.items[index_a], stars_aux.items[index_b]);
     links.appendAssumeCapacity(link);
 
-    stars_aux.items[index_a].setOwner(stars_aux.items[index_b].owner);
-    star_selection = @intCast(index_a);
+    stars_aux.items[index_b].setOwner(stars_aux.items[index_a].owner);
+    star_selection = index_a;
+    focused_star = null;
     ui_mode = .Game;
 }
 
 fn selectStar(index: usize) void
 {
-    star_selection = @intCast(index);
+    star_selection = index;
 }
 
 pub fn tick() void
@@ -166,8 +220,8 @@ pub fn updateInput(input: UserInput) void
 {
     if(input.rmb)
     {
-        star_selection = -1;
-        focused_star = -1;
+        star_selection = null;
+        focused_star = null;
 
         ui_mode = .Game;
     }
@@ -185,16 +239,23 @@ pub fn updateInput(input: UserInput) void
                     .Game => selectStar(i),
                     .Linking =>
                     {
-                        std.debug.assert(star_selection != -1);
-                        linkStars(i, @intCast(star_selection));
-                    }
+                        std.debug.assert(star_selection != null);
+                        focused_star = i;
+                        ui_mode = .ConfirmLink;
+                    },
+                    else => {}
                 }
             }
         }
     }
 
-    if(star_selection != -1 and stars_aux.items[@intCast(star_selection)].owner == 1 and rl.isKeyPressed(.kp_1))
+    if(star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1 and rl.isKeyPressed(.kp_1))
     {
         ui_mode = .Linking;
+    }
+
+    if(rl.isKeyPressed(.enter) and ui_mode == .ConfirmLink)
+    {
+        linkStars(star_selection.?, focused_star.?);
     }
 }
