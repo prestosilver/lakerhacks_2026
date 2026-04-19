@@ -142,7 +142,7 @@ pub fn drawUI(camera: Camera) void {
 
         const fs = stars_aux.items[focused_star.?];
 
-        const res = if(fs.owner != 0) own_str else (if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str);
+        const res = if(fs.owner < 2) own_str else (if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str);
 
         var line_buf: [128:0]u8 = undefined;
         const str = std.fmt.bufPrintZ(
@@ -339,7 +339,7 @@ pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_posit
             const cost = getLinkMineralCost(star_selection.?, focused_star.?);
             const fs = stars_aux.items[focused_star.?];
 
-            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost)) and fs.owner == 0) {
+            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost)) and fs.owner < 2) {
                 linkStars(star_selection.?, focused_star.?);
                 focused_star = null;
                 ui_mode = .Game;
