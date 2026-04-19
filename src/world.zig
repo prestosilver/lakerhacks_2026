@@ -85,7 +85,7 @@ fn generate_world(camera: *Camera) void
             host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
         }
 
-        stars_aux.items[host_star].setOwner(host_star);
+        stars_aux.items[host_star].setOwner(cur_faction);
 
         const faction: Faction = .init(stars_aux.items[host_star]);
         factions_aux.appendAssumeCapacity(faction);
@@ -95,8 +95,6 @@ fn generate_world(camera: *Camera) void
             const star_pos = stars_aux.items[host_star].getStarWorldPos(true);
             camera.x = star_pos.x;
             camera.y = star_pos.y;
-
-            std.debug.print("{d}, {d}\n", .{camera.x, camera.y});
         }
 
         cur_faction += 1;
@@ -194,7 +192,7 @@ pub fn updateInput(input: UserInput) void
         }
     }
 
-    if(star_selection != -1 and rl.isKeyPressed(.kp_1))
+    if(star_selection != -1 and stars_aux.items[@intCast(star_selection)].owner == 1 and rl.isKeyPressed(.kp_1))
     {
         ui_mode = .Linking;
     }
