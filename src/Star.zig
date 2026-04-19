@@ -226,14 +226,16 @@ pub fn setOwner(self: *Star, owner: usize) void {
 
 fn setGenRes(self: *Star) void
 {
-    self.gen_res.organic = self.total_res.energy / 5000 - self.total_res.population / 1000;
-    self.gen_res.energy = self.total_res.population * (self.total_res.organic / 2000 + self.total_res.mineral / 500);
-    self.gen_res.mineral = self.total_res.population * (self.total_res.energy / 2000);
+    self.gen_res.organic = self.total_res.energy / 500000 - self.total_res.population / 100000;
+    self.gen_res.energy = self.total_res.population * (self.total_res.organic / 200000 + self.total_res.mineral / 50000) - self.total_res.population / 50000;
+    self.gen_res.mineral = self.total_res.population * (self.total_res.energy / 200000) - self.total_res.population / 100000;
 
     if(self.total_res.energy > 100)
     {
         self.gen_res.energy /= self.total_res.energy - 99;
     }
+
+    self.gen_res.population = self.total_res.population * (self.total_res.organic / 20000 + self.total_res.energy / 100000);
 }
 
 /// Called once every tick.

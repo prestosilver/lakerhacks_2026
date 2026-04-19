@@ -179,7 +179,12 @@ pub fn init(camera: *Camera) void {
 }
 
 fn linkStars(index_a: usize, index_b: usize) void {
-    stars_aux.items[index_a].total_res.mineral -= @floatFromInt(getLinkMineralCost(index_a, index_b));
+    const cost: f32 = @floatFromInt(getLinkMineralCost(index_a, index_b));
+
+    stars_aux.items[index_a].total_res.mineral -= cost;
+
+    stars_aux.items[index_b].total_res.population = 1;
+    stars_aux.items[index_b].total_res.energy = 10;
 
     const link: Link = .init(stars_aux.items[index_a], stars_aux.items[index_b]);
     links.appendAssumeCapacity(link);
