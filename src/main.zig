@@ -11,23 +11,15 @@ const Faction = @import("Faction.zig");
 
 const ui = @import("ui.zig");
 
-const SCREEN_WIDTH = 1200;
-const SCREEN_HEIGHT = 800;
-
 const TPS = 20.0;
 
 const TICK_RATE = 1.0 / TPS;
 const CAMERA_SPEED = 5.0;
 
-const SCREEN_SIZE: rl.Vector2 = .{
-    .x = SCREEN_WIDTH,
-    .y = SCREEN_HEIGHT,
-};
-
 // zig+emscripten only works with c malloc/free
 const allocator = std.heap.c_allocator;
 
-var camera: Camera = .init(SCREEN_WIDTH, SCREEN_HEIGHT);
+var camera: Camera = .init(0, 0);
 
 fn get_mouse_position() rl.Vector2 {
     const mouse_pos_x = rl.getMouseX();
@@ -41,8 +33,22 @@ fn get_mouse_world_position() rl.Vector2 {
 }
 
 pub fn main() !void {
-    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Starweb");
+    rl.setConfigFlags(.{ .window_resizable = true });
+
+    rl.initWindow(1200, 800, "Starweb");
     defer rl.closeWindow();
+
+    if (@import("builtin").target.os.tag == .emscripten) {
+        rl.setWindowSize(
+            rl.getMonitorPhysicalWidth(rl.getCurrentMonitor()),
+            rl.getMonitorPhysicalHeight(rl.getCurrentMonitor()),
+        );
+        camera.screen_width = @floatFromInt(rl.getScreenWidth());
+        camera.screen_height = @floatFromInt(rl.getScreenHeight());
+    } else {
+        camera.screen_width = 1200;
+        camera.screen_height = 800;
+    }
 
     // Clear the screen once to avoid a black flash
     {
@@ -63,21 +69,9 @@ pub fn main() !void {
 
     world.init(&camera);
 
-    var star_has_text = ui.ResourceLabel{
-        .height = 24,
-        .desc = "Has",
-        .show_change = false
-    };
-    var star_makes_text = ui.ResourceLabel{
-        .height = 24,
-        .desc = "Makes",
-        .show_change = true
-    };
-    var star_uses_text = ui.ResourceLabel{
-        .height = 24,
-        .desc = "Uses",
-        .show_change = true
-    };
+    var star_has_text = ui.ResourceLabel{ .height = 24, .desc = "Has", .show_change = false };
+    var star_makes_text = ui.ResourceLabel{ .height = 24, .desc = "Makes", .show_change = true };
+    var star_uses_text = ui.ResourceLabel{ .height = 24, .desc = "Uses", .show_change = true };
     var link_button = ui.Button{
         .height = 24,
         .text = "Link",
@@ -121,6 +115,11 @@ pub fn main() !void {
     var previous_selection: ?*Star = null;
     var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
+        if (rl.isWindowResized()) {
+            camera.screen_width = @floatFromInt(rl.getScreenWidth());
+            camera.screen_height = @floatFromInt(rl.getScreenHeight());
+        }
+
         { // Update + Tick.
             const dt = rl.getFrameTime();
             tick_acc += dt;
@@ -183,8 +182,7 @@ pub fn main() !void {
             const mouse_world_pos = get_mouse_world_position();
             const mouse_screen_pos = get_mouse_position();
 
-            const input: world.UserInput = .{ .mouse_world_pos = mouse_world_pos, .mouse_screen_pos = mouse_screen_pos,
-            .lmb = rl.isMouseButtonDown(.left), .rmb = rl.isMouseButtonDown(.right) };
+            const input: world.UserInput = .{ .mouse_world_pos = mouse_world_pos, .mouse_screen_pos = mouse_screen_pos, .lmb = rl.isMouseButtonDown(.left), .rmb = rl.isMouseButtonDown(.right) };
 
             world.updateInput(input, &ui_elements, &ui_positions);
 
