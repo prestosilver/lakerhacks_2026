@@ -40,6 +40,10 @@ fn get_mouse_world_position() rl.Vector2 {
     return camera.vector2_screen_to_world(get_mouse_position());
 }
 
+pub fn test_destroy() void {
+    std.log.info("destroy", .{});
+}
+
 pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
     defer rl.closeWindow();
@@ -63,17 +67,23 @@ pub fn main() !void {
 
     world.init(&camera);
 
-    var star_has_text = ui.Label{
+    var star_has_text = ui.ResourceLabel{
         .height = 24,
-        .text = "",
+        .desc = "Has",
     };
-    var star_makes_text = ui.Label{
+    var star_makes_text = ui.ResourceLabel{
         .height = 24,
-        .text = "",
+        .desc = "Makes",
     };
-    var star_uses_text = ui.Label{
+    var star_uses_text = ui.ResourceLabel{
         .height = 24,
-        .text = "",
+        .desc = "Uses",
+    };
+    var destroy_button = ui.Button{
+        .height = 24,
+        .text = "Destroy",
+        .padding = 10,
+        .on_click = &test_destroy,
     };
 
     var star_panel = ui.Panel{
@@ -81,6 +91,7 @@ pub fn main() !void {
             .init(&star_has_text),
             .init(&star_makes_text),
             .init(&star_uses_text),
+            .init(&destroy_button),
         },
         .padding = 20,
     };
@@ -91,6 +102,7 @@ pub fn main() !void {
 
     var ui_positions = [_]?rl.Vector2{null} ** ui_elements.len;
 
+    var previous_selection: ?*Star = null;
     var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
         { // Update + Tick.
@@ -103,6 +115,7 @@ pub fn main() !void {
                 tick_acc -= TICK_RATE;
 
                 world.tick();
+                previous_selection = null;
             }
 
             const camera_move = dt * CAMERA_SPEED / camera.z;
@@ -127,7 +140,16 @@ pub fn main() !void {
                 camera.zoom_target = @max(camera.zoom_target, -13);
             }
 
-            if (world.selectedStar()) |star| {
+            const selected_star = world.selectedStar();
+            defer previous_selection = selected_star;
+
+            if (selected_star) |star| {
+                if (selected_star != previous_selection) {
+                    star_has_text.resources = &star.total_res;
+                    star_makes_text.resources = &star.gen_res;
+                    star_uses_text.resources = &star.req_res;
+                }
+
                 const ui_location_world: rl.Vector2 = .{
                     .x = @as(f32, @floatFromInt(Star.GRID_UNIT * star.x)) - Star.SELECTION_OUTLINE_BORDER,
                     .y = @as(f32, @floatFromInt(Star.GRID_UNIT * star.y)) + Star.RADIUS * 2 + Star.SELECTION_OUTLINE_BORDER,
@@ -147,6 +169,13 @@ pub fn main() !void {
             const input: world.UserInput = .{ .mouse_world_pos = mouse_world_pos, .lmb = rl.isMouseButtonDown(.left), .rmb = rl.isMouseButtonDown(.right) };
 
             world.updateInput(input);
+
+            const mouse_pos = rl.getMousePosition();
+
+            for (ui_elements, ui_positions) |element, position| {
+                if (position) |pos|
+                    element.update(dt, mouse_pos.subtract(pos));
+            }
         }
 
         { // Draw

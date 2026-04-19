@@ -1,9 +1,11 @@
+const std = @import("std");
 const rl = @import("raylib");
+const Star = @import("Star.zig");
 
 pub const UIElement = struct {
     const VTable = struct {
         draw: *const fn (*const anyopaque, rl.Vector2) void,
-        update: *const fn (*anyopaque, f32) void,
+        update: *const fn (*anyopaque, f32, rl.Vector2) void,
 
         size: *const fn (*const anyopaque) rl.Vector2,
     };
@@ -27,10 +29,10 @@ pub const UIElement = struct {
                 return @call(.always_inline, T.draw, .{ self, offset });
             }
 
-            fn updateImpl(data: *anyopaque, dt: f32) void {
+            fn updateImpl(data: *anyopaque, dt: f32, mouse: rl.Vector2) void {
                 const self: *T = @ptrCast(@alignCast(data));
 
-                return @call(.always_inline, T.update, .{ self, dt });
+                return @call(.always_inline, T.update, .{ self, dt, mouse });
             }
 
             fn sizeImpl(data: *const anyopaque) rl.Vector2 {
@@ -56,8 +58,8 @@ pub const UIElement = struct {
         return self.vtable.draw(self.data, offset);
     }
 
-    pub fn update(self: *const UIElement, dt: f32) void {
-        return self.vtable.update(self.data, dt);
+    pub fn update(self: *const UIElement, dt: f32, mouse: rl.Vector2) void {
+        return self.vtable.update(self.data, dt, mouse);
     }
 
     pub fn size(self: *const UIElement) rl.Vector2 {
@@ -69,9 +71,16 @@ pub const Panel = struct {
     children: []const UIElement,
     padding: f32,
 
-    pub fn update(self: *Panel, dt: f32) void {
-        for (self.children) |*child|
-            child.update(dt);
+    pub fn update(self: *Panel, dt: f32, mouse: rl.Vector2) void {
+        var elem_offset: rl.Vector2 = .{ .x = self.padding, .y = self.padding };
+
+        for (self.children) |*child| {
+            const child_size = child.size();
+
+            child.update(dt, mouse.subtract(elem_offset));
+
+            elem_offset.y += child_size.y;
+        }
     }
 
     pub fn draw(self: *const Panel, offset: rl.Vector2) void {
@@ -114,9 +123,10 @@ pub const Label = struct {
     text: [:0]const u8,
     height: i32,
 
-    pub fn update(self: *Label, dt: f32) void {
+    pub fn update(self: *Label, dt: f32, mouse: rl.Vector2) void {
         _ = self;
         _ = dt;
+        _ = mouse;
     }
 
     pub fn draw(self: *const Label, offset: rl.Vector2) void {
@@ -135,6 +145,98 @@ pub const Label = struct {
         return .{
             .x = @floatFromInt(width),
             .y = @floatFromInt(self.height),
+        };
+    }
+};
+
+pub const ResourceLabel = struct {
+    line_buf: [512:0]u8 = undefined,
+
+    desc: []const u8 = "",
+
+    resources: ?*Star.StarResources = null,
+    text: [:0]const u8 = "",
+
+    height: i32,
+
+    pub fn update(self: *ResourceLabel, dt: f32, mouse: rl.Vector2) void {
+        _ = dt;
+        _ = mouse;
+
+        if (self.resources) |resources| {
+            self.text = std.fmt.bufPrintZ(
+                &self.line_buf,
+                "{s}  - P:{d}  O:{d}  E:{d}  M:{d}",
+                .{ self.desc, resources.population, resources.organic, resources.energy, resources.mineral },
+            ) catch unreachable;
+        }
+    }
+
+    pub fn draw(self: *const ResourceLabel, offset: rl.Vector2) void {
+        rl.drawText(
+            self.text,
+            @intFromFloat(offset.x),
+            @intFromFloat(offset.y),
+            self.height,
+            .white,
+        );
+    }
+
+    pub fn size(self: *const ResourceLabel) rl.Vector2 {
+        const width = rl.measureText(self.text, self.height);
+
+        return .{
+            .x = @floatFromInt(width),
+            .y = @floatFromInt(self.height),
+        };
+    }
+};
+
+pub const Button = struct {
+    focused: bool = false,
+    on_click: ?*const fn () void = null,
+    text: [:0]const u8,
+    height: i32,
+    padding: i32,
+
+    pub fn update(self: *Button, dt: f32, mouse_offset: rl.Vector2) void {
+        const self_size = self.size();
+
+        self.focused = mouse_offset.x > 0 and mouse_offset.x < self_size.x and
+            mouse_offset.y > 0 and mouse_offset.y < self_size.y;
+
+        if (self.focused and rl.isMouseButtonPressed(.left)) {
+            if (self.on_click) |click| click();
+        }
+
+        _ = dt;
+    }
+
+    pub fn draw(self: *const Button, offset: rl.Vector2) void {
+        const self_size = self.size();
+
+        rl.drawRectangleRec(.{
+            .x = offset.x,
+            .y = offset.y,
+            .width = self_size.x,
+            .height = self_size.y,
+        }, if (self.focused) .light_gray else .dark_gray);
+
+        rl.drawText(
+            self.text,
+            @as(i32, @intFromFloat(offset.x)) + self.padding,
+            @as(i32, @intFromFloat(offset.y)) + self.padding,
+            self.height,
+            .white,
+        );
+    }
+
+    pub fn size(self: *const Button) rl.Vector2 {
+        const width = rl.measureText(self.text, self.height);
+
+        return .{
+            .x = @floatFromInt(width + self.padding * 2),
+            .y = @floatFromInt(self.height + self.padding * 2),
         };
     }
 };
