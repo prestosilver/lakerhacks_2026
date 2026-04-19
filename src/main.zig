@@ -144,7 +144,11 @@ pub fn main() !void {
             defer previous_selection = selected_star;
 
             if (selected_star) |star| {
-                if (selected_star != previous_selection) {}
+                if (selected_star != previous_selection) {
+                    star_has_text.resources = &star.total_res;
+                    star_makes_text.resources = &star.gen_res;
+                    star_uses_text.resources = &star.req_res;
+                }
 
                 const ui_location_world: rl.Vector2 = .{
                     .x = @as(f32, @floatFromInt(Star.GRID_UNIT * star.x)) - Star.SELECTION_OUTLINE_BORDER,

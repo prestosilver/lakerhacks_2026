@@ -10,7 +10,7 @@ pub const RADIUS = 0.2;
 pub const SELECTION_OUTLINE_BORDER = 0.1;
 
 /// Contains quantities of all resources used.
-const StarResources = struct {
+pub const StarResources = struct {
     population: f32,
     organic: f32,
     energy: f32,

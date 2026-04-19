@@ -1,5 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
+const Star = @import("Star.zig");
 
 pub const UIElement = struct {
     const VTable = struct {
@@ -152,11 +153,8 @@ pub const ResourceLabel = struct {
     line_buf: [512:0]u8 = undefined,
 
     desc: []const u8 = "",
-    population: f32 = 0,
-    organic: f32 = 0,
-    energy: f32 = 0,
-    mineral: f32 = 0,
-    changed: bool = true,
+
+    resources: ?*Star.StarResources = null,
     text: [:0]const u8 = "",
 
     height: i32,
@@ -165,14 +163,12 @@ pub const ResourceLabel = struct {
         _ = dt;
         _ = mouse;
 
-        if (self.changed) {
+        if (self.resources) |resources| {
             self.text = std.fmt.bufPrintZ(
                 &self.line_buf,
                 "{s}  - P:{d}  O:{d}  E:{d}  M:{d}",
-                .{ self.desc, self.population, self.organic, self.energy, self.mineral },
+                .{ self.desc, resources.population, resources.organic, resources.energy, resources.mineral },
             ) catch unreachable;
-
-            self.changed = false;
         }
     }
 
