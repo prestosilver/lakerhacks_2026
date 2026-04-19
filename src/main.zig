@@ -179,6 +179,7 @@ pub fn main() !void {
             defer rl.endDrawing();
 
             world.draw(camera);
+            world.drawUI(camera);
 
             for (ui_elements, ui_positions) |element, position| {
                 if (position) |pos|
