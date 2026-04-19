@@ -29,6 +29,13 @@ var factions_aux: std.ArrayList(Faction) = undefined;
 
 var links: std.ArrayList(Link) = undefined;
 
+pub const UserInput = struct
+{
+    mouse_world_pos: rl.Vector2,
+    lmb: bool,
+    rmb: bool
+};
+
 fn generate_world(camera: *Camera) void
 {
     for (0..GRID_SIZE) |i| for (0..GRID_SIZE) |j| {
@@ -102,9 +109,9 @@ pub fn draw(camera: Camera) void
 
     const screen_bounds = camera.get_screen_space_rect();
 
-    for (stars_aux.items) |star| {
+    for (stars_aux.items, 0..) |star, i| {
         if (rl.checkCollisionRecs(star.getGridRectangle(), screen_bounds))
-            star.draw(camera);
+            star.draw(camera, star_selection == i);
     }
 }
 
@@ -120,8 +127,29 @@ pub fn init(camera: *Camera) void
     generate_world(camera);
 }
 
+fn selectStar(index: usize) void
+{
+    star_selection = index;
+}
+
 pub fn tick() void
 {
     for (stars_aux.items) |star|
         star.tick(links);
+}
+
+pub fn updateInput(input: UserInput) void
+{
+    for (stars_aux.items, 0..) |star, i|
+    {
+        star.mouse_hovering = false;
+        if (rl.checkCollisionPointRec(input.mouse_world_pos, star.getStarRectangle()))
+        {
+            star.mouse_hovering = true;
+            if(input.lmb)
+            {
+                selectStar(i);
+            }
+        }
+    }
 }

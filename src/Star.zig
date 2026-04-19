@@ -7,6 +7,8 @@ const Camera = @import("Camera.zig");
 const GRID_UNIT = 1;
 const RADIUS = 0.2;
 
+const SELECTION_OUTLINE_BORDER = 0.1;
+
 /// Contains quantities of all resources used.
 const StarResources = struct {
     population: f32,
@@ -78,7 +80,9 @@ owner: usize,
 /// Color of the background cell, determined by the owning faction.
 faction_color: rl.Color = .blank,
 
-pub fn draw(self: *const Star, camera: Camera) void {
+mouse_hovering: bool,
+
+pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
     const world_pos: rl.Vector2 = .{
         .x = @floatFromInt(GRID_UNIT * self.x),
         .y = @floatFromInt(GRID_UNIT * self.y),
@@ -93,6 +97,30 @@ pub fn draw(self: *const Star, camera: Camera) void {
         .width = screen_size,
         .height = screen_size,
     };
+
+    const ol_to_screen = camera.vector2_world_to_screen(.{
+        .x = world_pos.x - SELECTION_OUTLINE_BORDER,
+        .y = world_pos.y - SELECTION_OUTLINE_BORDER
+    });
+
+    const ol_screen_size = camera.size_to_screen(RADIUS * GRID_UNIT * 2 + SELECTION_OUTLINE_BORDER * 2);
+
+    const outline_screen_pos: rl.Rectangle = .{
+        .x = ol_to_screen.x,
+        .y = ol_to_screen.y,
+        .width = ol_screen_size,
+        .height = ol_screen_size,
+    };
+
+    if(self.mouse_hovering)
+    {
+        rl.drawRectangleRec(outline_screen_pos, .{ .r = 255, .g = 255, .b = 255, .a = 200 });
+    }
+
+    if(is_selected)
+    {
+        rl.drawRectangleLinesEx(outline_screen_pos, 3, .white);
+    }
 
     const grid_rectangle_world = self.getGridRectangle();
 
@@ -119,12 +147,8 @@ pub fn draw(self: *const Star, camera: Camera) void {
         .white,
     );
 
-    if (@import("builtin").mode == .Debug)
-        rl.drawRectangleLinesEx(
-            screen_pos,
-            2,
-            .blue,
-        );
+    //if (@import("builtin").mode == .Debug)
+        //rl.drawRectangleLinesEx(screen_pos, 2, .blue);
 }
 
 pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
@@ -146,6 +170,8 @@ pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
         .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10,
 
         .owner = 0,
+
+        .mouse_hovering = false
     };
 
     return star;

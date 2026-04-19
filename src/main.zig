@@ -98,6 +98,16 @@ pub fn main() !void {
             }
 
             camera.update();
+            
+            const mouse_world_pos = get_mouse_world_position();
+
+            const input: world.UserInput = .{
+                .mouse_world_pos = mouse_world_pos,
+                .lmb = rl.isMouseButtonDown(.left),
+                .rmb = rl.isMouseButtonDown(.right)
+            };
+
+            world.updateInput(input);
         }
 
         { // Draw
@@ -106,7 +116,7 @@ pub fn main() !void {
 
             world.draw(camera);
 
-            // const mouse_world_pos = get_mouse_world_position();
+            
         }
     }
 }
