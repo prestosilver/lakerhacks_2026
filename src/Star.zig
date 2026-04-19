@@ -233,7 +233,13 @@ pub fn tick(self: *Star) void {
     self.setGenRes();
     self.total_res.add(self.gen_res);
 
-    if(self.total_res.organic <= 0)
+    if(self.total_res.population <= 1)
+    {
+        self.owner = 0;
+        self.total_res.population = 0;
+    }
+
+    if(self.total_res.organic <= 1)
     {
         // Population dies, Star loses owner.
         self.owner = 0;

@@ -195,6 +195,36 @@ fn linkStars(index_a: usize, index_b: usize) void {
     ui_mode = .Game;
 }
 
+pub fn reqLessPop() void
+{
+    stars_aux.items[star_selection.?].req_res.population -= 0.25;
+}
+
+pub fn reqMorePop() void
+{
+    stars_aux.items[star_selection.?].req_res.population += 0.25;
+}
+
+pub fn reqLessOrg() void
+{
+    stars_aux.items[star_selection.?].req_res.organic -= 0.25;
+}
+
+pub fn reqMoreOrg() void
+{
+    stars_aux.items[star_selection.?].req_res.organic += 0.25;
+}
+
+pub fn reqLessMin() void
+{
+    stars_aux.items[star_selection.?].req_res.mineral -= 0.25;
+}
+
+pub fn reqMoreMin() void
+{
+    stars_aux.items[star_selection.?].req_res.mineral += 0.25;
+}
+
 fn selectStar(index: usize) void {
     star_selection = index;
 }

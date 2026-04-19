@@ -91,11 +91,54 @@ pub fn main() !void {
         .on_click = &world.cancelLink,
     };
 
+    var req_less_pop = ui.Button {
+        .height = 24,
+        .text = "-P",
+        .padding = 5,
+        .on_click = &world.reqLessPop
+    };
+    var req_more_pop = ui.Button {
+        .height = 24,
+        .text = "+P",
+        .padding = 5,
+        .on_click = &world.reqMorePop
+    };
+    var req_less_org = ui.Button {
+        .height = 24,
+        .text = "-O",
+        .padding = 5,
+        .on_click = &world.reqLessOrg
+    };
+    var req_more_org = ui.Button {
+        .height = 24,
+        .text = "+O",
+        .padding = 5,
+        .on_click = &world.reqMoreOrg
+    };
+    var req_less_min = ui.Button {
+        .height = 24,
+        .text = "-M",
+        .padding = 5,
+        .on_click = &world.reqLessMin
+    };
+    var req_more_min = ui.Button {
+        .height = 24,
+        .text = "+M",
+        .padding = 5,
+        .on_click = &world.reqMoreMin
+    };
+
     var button_panel = ui.Panel{
         .vertical = false,
         .children = &.{
             .init(&link_button),
             .init(&cancel_button),
+            .init(&req_less_pop),
+            .init(&req_more_pop),
+            .init(&req_less_org),
+            .init(&req_more_org),
+            .init(&req_less_min),
+            .init(&req_more_min)
         },
         .padding = 0,
         .spacing = 5,
