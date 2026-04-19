@@ -82,7 +82,7 @@ faction_color: rl.Color = .blank,
 
 mouse_hovering: bool,
 
-pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
+pub fn draw(self: *const Star, camera: Camera) void {
     const world_pos: rl.Vector2 = .{
         .x = @floatFromInt(GRID_UNIT * self.x),
         .y = @floatFromInt(GRID_UNIT * self.y),
