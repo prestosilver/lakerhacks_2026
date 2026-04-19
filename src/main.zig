@@ -63,19 +63,33 @@ pub fn main() !void {
 
     world.init(&camera);
 
-    //var test_panel = ui.Panel{
-        //.children = &.{},
-        //.bounds = .{
-            //.x = 10,
-            //.y = 10,
-            //.width = 300,
-            //.height = SCREEN_HEIGHT - 20,
-        //},
-    //};
+    var star_has_text = ui.Label{
+        .height = 24,
+        .text = "",
+    };
+    var star_makes_text = ui.Label{
+        .height = 24,
+        .text = "",
+    };
+    var star_uses_text = ui.Label{
+        .height = 24,
+        .text = "",
+    };
 
-    //const ui_elements = [_]ui.UIElement{
-        //.init(&test_panel),
-    //};
+    var star_panel = ui.Panel{
+        .children = &.{
+            .init(&star_has_text),
+            .init(&star_makes_text),
+            .init(&star_uses_text),
+        },
+        .padding = 20,
+    };
+
+    const ui_elements = [_]ui.UIElement{
+        .init(&star_panel),
+    };
+
+    var ui_positions = [_]?rl.Vector2{null} ** ui_elements.len;
 
     var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
@@ -113,15 +127,24 @@ pub fn main() !void {
                 camera.zoom_target = @max(camera.zoom_target, -13);
             }
 
+            if (world.selectedStar()) |star| {
+                const ui_location_world: rl.Vector2 = .{
+                    .x = @as(f32, @floatFromInt(Star.GRID_UNIT * star.x)) - Star.SELECTION_OUTLINE_BORDER,
+                    .y = @as(f32, @floatFromInt(Star.GRID_UNIT * star.y)) + Star.RADIUS * 2 + Star.SELECTION_OUTLINE_BORDER,
+                };
+
+                const ui_location_screen = camera.vector2_world_to_screen(ui_location_world);
+
+                ui_positions[0] = ui_location_screen;
+            } else {
+                ui_positions[0] = null;
+            }
+
             camera.update();
-            
+
             const mouse_world_pos = get_mouse_world_position();
 
-            const input: world.UserInput = .{
-                .mouse_world_pos = mouse_world_pos,
-                .lmb = rl.isMouseButtonDown(.left),
-                .rmb = rl.isMouseButtonDown(.right)
-            };
+            const input: world.UserInput = .{ .mouse_world_pos = mouse_world_pos, .lmb = rl.isMouseButtonDown(.left), .rmb = rl.isMouseButtonDown(.right) };
 
             world.updateInput(input);
         }
@@ -133,9 +156,10 @@ pub fn main() !void {
             world.draw(camera);
             world.drawUI(camera);
 
-            //for (ui_elements) |element| {
-                //element.draw();
-            //}
+            for (ui_elements, ui_positions) |element, position| {
+                if (position) |pos|
+                    element.draw(pos);
+            }
         }
     }
 }

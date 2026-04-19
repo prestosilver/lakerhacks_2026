@@ -31,12 +31,7 @@ var factions_aux: std.ArrayList(Faction) = undefined;
 
 var links: std.ArrayList(Link) = undefined;
 
-pub const UserInput = struct
-{
-    mouse_world_pos: rl.Vector2,
-    lmb: bool,
-    rmb: bool
-};
+pub const UserInput = struct { mouse_world_pos: rl.Vector2, lmb: bool, rmb: bool };
 
 pub const UIMode = enum
 {
@@ -47,8 +42,7 @@ pub const UIMode = enum
 
 pub var ui_mode: UIMode = undefined;
 
-fn generate_world(camera: *Camera) void
-{
+fn generate_world(camera: *Camera) void {
     for (0..GRID_SIZE) |i| for (0..GRID_SIZE) |j| {
         // TODO: Stretch goal: make the galaxy spiral out. (might take an hour or two).
 
@@ -77,11 +71,9 @@ fn generate_world(camera: *Camera) void
 
     var num_factions = rl.getRandomValue(6, 25);
     var cur_faction: usize = 1;
-    while(num_factions > 0) : (num_factions -= 1)
-    {
+    while (num_factions > 0) : (num_factions -= 1) {
         var host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
-        while(stars_aux.items[host_star].owner != 0)
-        {
+        while (stars_aux.items[host_star].owner != 0) {
             // Make sure the star isn't already owned by another faction.
             host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
         }
@@ -91,8 +83,7 @@ fn generate_world(camera: *Camera) void
         const faction: Faction = .init(stars_aux.items[host_star]);
         factions_aux.appendAssumeCapacity(faction);
 
-        if(cur_faction == 1)
-        {
+        if (cur_faction == 1) {
             const star_pos = stars_aux.items[host_star].getStarWorldPos(true);
             camera.x = star_pos.x;
             camera.y = star_pos.y;
@@ -101,15 +92,13 @@ fn generate_world(camera: *Camera) void
         cur_faction += 1;
     }
 
-    if (@import("builtin").mode == .Debug)
-    {
+    if (@import("builtin").mode == .Debug) {
         std.debug.print("Total stars: {d}.\n", .{stars_aux.items.len});
         std.debug.print("Total factions: {d}.\n", .{factions_aux.items.len});
     }
 }
 
-pub fn draw(camera: Camera) void
-{
+pub fn draw(camera: Camera) void {
     rl.clearBackground(.{ .r = 0, .g = 0, .b = 0, .a = 255 });
 
     if(ui_mode == .ConfirmLink)
@@ -207,8 +196,14 @@ fn selectStar(index: usize) void
     star_selection = index;
 }
 
-pub fn tick() void
-{
+pub fn selectedStar() ?*Star {
+    return if (star_selection >= 0)
+        stars_aux.items[star_selection.?]
+    else
+        null;
+}
+
+pub fn tick() void {
     for (stars_aux.items) |star|
         star.tick();
 
@@ -226,16 +221,12 @@ pub fn updateInput(input: UserInput) void
         ui_mode = .Game;
     }
 
-    for (stars_aux.items, 0..) |star, i|
-    {
+    for (stars_aux.items, 0..) |star, i| {
         star.mouse_hovering = false;
-        if (rl.checkCollisionPointRec(input.mouse_world_pos, star.getStarRectangle()))
-        {
+        if (rl.checkCollisionPointRec(input.mouse_world_pos, star.getStarRectangle())) {
             star.mouse_hovering = true;
-            if(input.lmb)
-            {
-                switch(ui_mode)
-                {
+            if (input.lmb) {
+                switch (ui_mode) {
                     .Game => selectStar(i),
                     .Linking =>
                     {

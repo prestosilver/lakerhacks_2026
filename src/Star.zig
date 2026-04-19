@@ -4,10 +4,10 @@ const rl = @import("raylib");
 const Link = @import("Link.zig");
 const Camera = @import("Camera.zig");
 
-const GRID_UNIT = 1;
-const RADIUS = 0.2;
+pub const GRID_UNIT = 1;
+pub const RADIUS = 0.2;
 
-const SELECTION_OUTLINE_BORDER = 0.1;
+pub const SELECTION_OUTLINE_BORDER = 0.1;
 
 /// Contains quantities of all resources used.
 const StarResources = struct {
@@ -98,10 +98,7 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
         .height = screen_size,
     };
 
-    const ol_to_screen = camera.vector2_world_to_screen(.{
-        .x = world_pos.x - SELECTION_OUTLINE_BORDER,
-        .y = world_pos.y - SELECTION_OUTLINE_BORDER
-    });
+    const ol_to_screen = camera.vector2_world_to_screen(.{ .x = world_pos.x - SELECTION_OUTLINE_BORDER, .y = world_pos.y - SELECTION_OUTLINE_BORDER });
 
     const ol_screen_size = camera.size_to_screen(RADIUS * GRID_UNIT * 2 + SELECTION_OUTLINE_BORDER * 2);
 
@@ -112,17 +109,16 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
         .height = ol_screen_size,
     };
 
-    if(self.mouse_hovering)
-    {
+    if (self.mouse_hovering) {
         rl.drawRectangleRec(outline_screen_pos, .{ .r = 255, .g = 255, .b = 255, .a = 200 });
     }
 
     const grid_rectangle_world = self.getGridRectangle();
 
-    const grid_pos_screen = camera.vector2_world_to_screen(.{.x = grid_rectangle_world.x, .y = grid_rectangle_world.y});
+    const grid_pos_screen = camera.vector2_world_to_screen(.{ .x = grid_rectangle_world.x, .y = grid_rectangle_world.y });
     const grid_size_screen = camera.size_to_screen(GRID_UNIT);
 
-    rl.drawRectangleV(grid_pos_screen, .{ .x = grid_size_screen, .y = grid_size_screen}, self.faction_color);
+    rl.drawRectangleV(grid_pos_screen, .{ .x = grid_size_screen, .y = grid_size_screen }, self.faction_color);
 
     self.texture.drawPro(
         .{
@@ -142,8 +138,7 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
         .white,
     );
 
-    if(is_selected)
-    {
+    if (is_selected) {
         rl.drawRectangleLinesEx(outline_screen_pos, 3, .white);
 
         const ui_location_world: rl.Vector2 = .{
@@ -153,22 +148,18 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
 
         const ui_location_screen = camera.vector2_world_to_screen(ui_location_world);
 
-        const ui_bounds: rl.Rectangle = .{
-            .x = ui_location_screen.x,
-            .y = ui_location_screen.y,
-            .width = 300,
-            .height = 100
-        };
+        const ui_bounds: rl.Rectangle = .{ .x = ui_location_screen.x, .y = ui_location_screen.y, .width = 300, .height = 100 };
 
         var line_buf: [512:0]u8 = undefined;
-        const str = std.fmt.bufPrintZ(&line_buf, "Has: P:{d},O:{d},E:{d},M:{d}\nMakes: P:{d},O:{d},E:{d},M:{d}\nUses: P:{d},O:{d},E:{d},M:{d}",
-        .{self.total_res.population, self.total_res.organic, self.total_res.energy, self.total_res.mineral,
-                self.gen_res.population, self.gen_res.organic, self.gen_res.energy, self.gen_res.mineral,
-                self.req_res.population, self.req_res.organic, self.req_res.energy, self.req_res.mineral},) catch |err|
-        {
-            std.debug.print("Error: {}.\n", .{err});
-            @panic("Somehow, you exceeded the 512-byte buffer. Congrats, I guess");
-        };
+        const str = std.fmt.bufPrintZ(
+            &line_buf,
+            "Has: P:{d},O:{d},E:{d},M:{d}\nMakes: P:{d},O:{d},E:{d},M:{d}\nUses: P:{d},O:{d},E:{d},M:{d}",
+            .{ self.total_res.population, self.total_res.organic, self.total_res.energy, self.total_res.mineral, self.gen_res.population, self.gen_res.organic, self.gen_res.energy, self.gen_res.mineral, self.req_res.population, self.req_res.organic, self.req_res.energy, self.req_res.mineral },
+        ) catch |err|
+            {
+                std.debug.print("Error: {}.\n", .{err});
+                @panic("Somehow, you exceeded the 512-byte buffer. Congrats, I guess");
+            };
 
         line_buf[str.len] = 0;
 
@@ -177,63 +168,34 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
     }
 
     //if (@import("builtin").mode == .Debug)
-        //rl.drawRectangleLinesEx(screen_pos, 2, .blue);
+    //rl.drawRectangleLinesEx(screen_pos, 2, .blue);
 }
 
 pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
-    const star: Star = .{
-        .texture = texture,
-        .x = x,
-        .y = y,
-        .total_res = .{
-            .population = 0,
-            .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
-            .energy = 0,
-            .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
-        },
-        .gen_res = .init_zero(),
-        .req_res = .init_zero(),
-
-        .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
-        .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)),
-        .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10,
-
-        .owner = 0,
-
-        .mouse_hovering = false
-    };
+    const star: Star = .{ .texture = texture, .x = x, .y = y, .total_res = .{
+        .population = 0,
+        .organic = @floatFromInt(rl.getRandomValue(0, 1000)),
+        .energy = 0,
+        .mineral = @floatFromInt(rl.getRandomValue(0, 60)),
+    }, .gen_res = .init_zero(), .req_res = .init_zero(), .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)), .cycle_timer = @floatFromInt(rl.getRandomValue(0, 300)), .cycle_speed = @as(f32, @floatFromInt(rl.getRandomValue(1, 100))) / 10, .owner = 0, .mouse_hovering = false };
 
     return star;
 }
 
-pub fn getFactionColor(self: Star) rl.Color
-{
-    if(self.owner == 0)
-    {
+pub fn getFactionColor(self: Star) rl.Color {
+    if (self.owner == 0) {
         return .blank;
-    }
-    else
-    {
+    } else {
         const r: usize = (45 + (1771 * self.owner) % 855) & 127;
         const g: usize = (113 + (8121 * self.owner) % 1059) & 127;
         const b: usize = (201 + (6599 * self.owner) % 653) & 127;
 
-        return .{
-            .r = @truncate(r + 128),
-            .g = @truncate(g + 128),
-            .b = @truncate(b + 128),
-            .a = 102
-        };
+        return .{ .r = @truncate(r + 128), .g = @truncate(g + 128), .b = @truncate(b + 128), .a = 102 };
     }
 }
 
 pub fn getGridRectangle(self: Star) rl.Rectangle {
-    return .{
-        .x = @floatFromInt(GRID_UNIT * self.x),
-        .y = @floatFromInt(GRID_UNIT * self.y),
-        .width = GRID_UNIT,
-        .height = GRID_UNIT
-    };
+    return .{ .x = @floatFromInt(GRID_UNIT * self.x), .y = @floatFromInt(GRID_UNIT * self.y), .width = GRID_UNIT, .height = GRID_UNIT };
 }
 
 pub fn getStarRectangle(self: Star) rl.Rectangle {
@@ -245,36 +207,24 @@ pub fn getStarRectangle(self: Star) rl.Rectangle {
     };
 }
 
-pub fn getStarWorldPos(self: Star, centered: bool) rl.Vector2
-{
-    if(centered)
-    {
+pub fn getStarWorldPos(self: Star, centered: bool) rl.Vector2 {
+    if (centered) {
         const x: f32 = @floatFromInt(GRID_UNIT * self.x);
         const y: f32 = @floatFromInt(GRID_UNIT * self.y);
 
-        return .{
-            .x = x + RADIUS,
-            .y = y + RADIUS
-        };
-    }
-    else return .{
-        .x = @floatFromInt(GRID_UNIT * self.x),
-        .y = @floatFromInt(GRID_UNIT * self.y)
-    };
+        return .{ .x = x + RADIUS, .y = y + RADIUS };
+    } else return .{ .x = @floatFromInt(GRID_UNIT * self.x), .y = @floatFromInt(GRID_UNIT * self.y) };
 }
 
-pub fn setOwner(self: *Star, owner: usize) void
-{
+pub fn setOwner(self: *Star, owner: usize) void {
     self.owner = owner;
     self.faction_color = self.getFactionColor();
 }
 
 /// Called once every tick.
-pub fn tick(self: *Star) void
-{
+pub fn tick(self: *Star) void {
     self.cycle_timer += self.cycle_speed;
-    if(self.cycle_timer >= self.cycle_length)
-    {
+    if (self.cycle_timer >= self.cycle_length) {
         self.cycle_timer -= self.cycle_length;
     }
 }
