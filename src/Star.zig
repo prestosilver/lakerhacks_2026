@@ -233,6 +233,25 @@ pub fn tick(self: *Star) void {
     self.setGenRes();
     self.total_res.add(self.gen_res);
 
+    if(self.total_res.organic <= 0)
+    {
+        // Population dies, Star loses owner.
+        self.owner = 0;
+        self.total_res.population = 0;
+    }
+
+    if(self.total_res.energy <= 0)
+    {
+        // Blackouts ensue, people die.
+        self.total_res.population -= 1;
+        self.total_res.energy = 0;
+    }
+
+    if(self.total_res.mineral <= 0)
+    {
+        self.total_res.mineral = 0;
+    }
+
     self.cycle_timer += self.cycle_speed;
     if (self.cycle_timer >= self.cycle_length) {
         self.cycle_timer -= self.cycle_length;
