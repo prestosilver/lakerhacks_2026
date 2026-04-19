@@ -9,10 +9,10 @@ const Link = @import("Link.zig");
 const Camera = @import("Camera.zig");
 const Faction = @import("Faction.zig");
 
-const GRID_SIZE = 512;
+pub const GRID_SIZE = 512;
 const GRID_MEDIAN = GRID_SIZE / 2;
 const MAX_LINK_COUNT = 256;
-const MAX_FACTION_COUNT = 1024;
+const MAX_FACTION_COUNT = 16;
 
 const FILL_RATIO = 0.25;
 const STAR_COUNT: usize = (GRID_SIZE * GRID_SIZE) * FILL_RATIO;
@@ -65,7 +65,7 @@ fn generate_world(camera: *Camera) void {
         stars_aux.appendAssumeCapacity(star);
     };
 
-    var num_factions = rl.getRandomValue(6, 25);
+    var num_factions = rl.getRandomValue(6, 15);
     var cur_faction: usize = 1;
     while (num_factions > 0) : (num_factions -= 1) {
         var host_star = @as(usize, @intCast(rl.getRandomValue(0, @intCast(stars_aux.items.len - 1))));
@@ -81,8 +81,14 @@ fn generate_world(camera: *Camera) void {
         stars_aux.items[host_star].total_res.energy = @floatFromInt(rl.getRandomValue(150, 200));
         stars_aux.items[host_star].total_res.mineral = @floatFromInt(rl.getRandomValue(20, 30));
 
-        const faction: Faction = .init(stars_aux.items[host_star]);
-        factions_aux.appendAssumeCapacity(faction);
+        factions_aux.appendAssumeCapacity(.{
+            .home = stars_aux.items[host_star],
+            .tick_acc = @intCast(cur_faction * 5),
+        });
+        const faction = &factions_aux.items[factions_aux.items.len - 1];
+
+        faction.stars = .initBuffer(&faction.star_buffer);
+        faction.stars.appendAssumeCapacity(stars_aux.items[host_star]);
 
         if (cur_faction == 1) {
             const star_pos = stars_aux.items[host_star].getStarWorldPos(true);
@@ -178,8 +184,10 @@ pub fn init(camera: *Camera) void {
     generate_world(camera);
 }
 
-fn linkStars(index_a: usize, index_b: usize) void {
+pub fn linkStars(index_a: usize, index_b: usize) void {
     const cost: f32 = @floatFromInt(getLinkMineralCost(index_a, index_b));
+
+    if (cost > stars_aux.items[index_a].total_res.mineral) return;
 
     stars_aux.items[index_a].total_res.mineral -= cost;
 
@@ -190,9 +198,6 @@ fn linkStars(index_a: usize, index_b: usize) void {
     links.appendAssumeCapacity(link);
 
     stars_aux.items[index_b].setOwner(stars_aux.items[index_a].owner);
-    star_selection = index_a;
-    focused_star = null;
-    ui_mode = .Game;
 }
 
 fn selectStar(index: usize) void {
@@ -212,6 +217,11 @@ pub fn tick() void {
 
     for (links.items) |*link|
         link.tick();
+
+    for (factions_aux.items, 0..) |*faction, id| {
+        if (id > 1)
+            faction.tick(&stars_aux);
+    }
 }
 
 pub fn beginLink() void {
@@ -224,6 +234,8 @@ pub fn beginLink() void {
 
         if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
             linkStars(star_selection.?, focused_star.?);
+            focused_star = null;
+            ui_mode = .Game;
         }
     }
 }
@@ -295,6 +307,8 @@ pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_posit
 
             if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
                 linkStars(star_selection.?, focused_star.?);
+                focused_star = null;
+                ui_mode = .Game;
             } else if (rl.isKeyPressed(.escape)) {
                 focused_star = null;
                 ui_mode = .Game;
