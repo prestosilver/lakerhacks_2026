@@ -11,7 +11,7 @@ const Faction = @import("Faction.zig");
 
 const ui = @import("ui.zig");
 
-const SCREEN_WIDTH = 800;
+const SCREEN_WIDTH = 1200;
 const SCREEN_HEIGHT = 800;
 
 const TPS = 20.0;
@@ -63,19 +63,19 @@ pub fn main() !void {
 
     world.init(&camera);
 
-    var test_panel = ui.Panel{
-        .children = &.{},
-        .bounds = .{
-            .x = 10,
-            .y = 10,
-            .width = 300,
-            .height = SCREEN_HEIGHT - 20,
-        },
-    };
+    //var test_panel = ui.Panel{
+        //.children = &.{},
+        //.bounds = .{
+            //.x = 10,
+            //.y = 10,
+            //.width = 300,
+            //.height = SCREEN_HEIGHT - 20,
+        //},
+    //};
 
-    const ui_elements = [_]ui.UIElement{
-        .init(&test_panel),
-    };
+    //const ui_elements = [_]ui.UIElement{
+        //.init(&test_panel),
+    //};
 
     var tick_acc: f64 = 0;
     while (!rl.windowShouldClose()) {
@@ -131,10 +131,10 @@ pub fn main() !void {
             defer rl.endDrawing();
 
             world.draw(camera);
-            
-            for (ui_elements) |element| {
-                element.draw();
-            }
+
+            //for (ui_elements) |element| {
+                //element.draw();
+            //}
         }
     }
 }

@@ -117,11 +117,6 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
         rl.drawRectangleRec(outline_screen_pos, .{ .r = 255, .g = 255, .b = 255, .a = 200 });
     }
 
-    if(is_selected)
-    {
-        rl.drawRectangleLinesEx(outline_screen_pos, 3, .white);
-    }
-
     const grid_rectangle_world = self.getGridRectangle();
 
     const grid_pos_screen = camera.vector2_world_to_screen(.{.x = grid_rectangle_world.x, .y = grid_rectangle_world.y});
@@ -146,6 +141,40 @@ pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
         (self.cycle_timer / self.cycle_length) * 360,
         .white,
     );
+
+    if(is_selected)
+    {
+        rl.drawRectangleLinesEx(outline_screen_pos, 3, .white);
+
+        const ui_location_world: rl.Vector2 = .{
+            .x = @as(f32, @floatFromInt(GRID_UNIT * self.x)) - SELECTION_OUTLINE_BORDER,
+            .y = @as(f32, @floatFromInt(GRID_UNIT * self.y)) + RADIUS * 2 + SELECTION_OUTLINE_BORDER,
+        };
+
+        const ui_location_screen = camera.vector2_world_to_screen(ui_location_world);
+
+        const ui_bounds: rl.Rectangle = .{
+            .x = ui_location_screen.x,
+            .y = ui_location_screen.y,
+            .width = 300,
+            .height = 100
+        };
+
+        var line_buf: [512:0]u8 = undefined;
+        const str = std.fmt.bufPrintZ(&line_buf, "Has: P:{d},O:{d},E:{d},M:{d}\nMakes: P:{d},O:{d},E:{d},M:{d}\nUses: P:{d},O:{d},E:{d},M:{d}",
+        .{self.total_res.population, self.total_res.organic, self.total_res.energy, self.total_res.mineral,
+                self.gen_res.population, self.gen_res.organic, self.gen_res.energy, self.gen_res.mineral,
+                self.req_res.population, self.req_res.organic, self.req_res.energy, self.req_res.mineral},) catch |err|
+        {
+            std.debug.print("Error: {}.\n", .{err});
+            @panic("Somehow, you exceeded the 512-byte buffer. Congrats, I guess");
+        };
+
+        line_buf[str.len] = 0;
+
+        rl.drawRectangleRec(ui_bounds, .light_gray);
+        rl.drawText(&line_buf, @intFromFloat(ui_bounds.x + 10), @intFromFloat(ui_bounds.y + 10), 24, .black);
+    }
 
     //if (@import("builtin").mode == .Debug)
         //rl.drawRectangleLinesEx(screen_pos, 2, .blue);

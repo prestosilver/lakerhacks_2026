@@ -196,7 +196,6 @@ pub fn updateInput(input: UserInput) void
 
     if(star_selection != -1 and rl.isKeyPressed(.kp_1))
     {
-        std.debug.print("{s}\n", .{"Hello?"});
         ui_mode = .Linking;
     }
 }
