@@ -162,7 +162,12 @@ pub fn init(texture: *const rl.Texture, x: u16, y: u16) Star {
         .y = y,
         .center_x = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
         .center_y = @as(f32, @floatFromInt(rl.getRandomValue(0, 100))) / 100 * (1.0 - RADIUS * GRID_UNIT * 2),
-        .total_res = .init_zero(),
+        .total_res = .{
+            .population = 0,
+            .energy = 0,
+            .organic = @floatFromInt(rl.getRandomValue(60, 100)),
+            .mineral = 0
+        },
         .gen_res = .init_zero(),
         .req_res = .init_zero(),
         .cycle_length = @floatFromInt(rl.getRandomValue(100, 300)),
@@ -235,14 +240,14 @@ pub fn tick(self: *Star) void {
 
     if(self.total_res.population <= 1)
     {
-        self.owner = 0;
+        self.setOwner(0);
         self.total_res.population = 0;
     }
 
     if(self.total_res.organic <= 1)
     {
         // Population dies, Star loses owner.
-        self.owner = 0;
+        self.setOwner(0);
         self.total_res.population = 0;
     }
 
