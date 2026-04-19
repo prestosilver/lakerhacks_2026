@@ -221,8 +221,16 @@ pub fn setOwner(self: *Star, owner: usize) void {
     self.faction_color = self.getFactionColor();
 }
 
+fn setGenRes(self: *Star) void
+{
+    
+}
+
 /// Called once every tick.
 pub fn tick(self: *Star) void {
+    self.setGenRes();
+    self.total_res.add(self.gen_res);
+
     self.cycle_timer += self.cycle_speed;
     if (self.cycle_timer >= self.cycle_length) {
         self.cycle_timer -= self.cycle_length;
