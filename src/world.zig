@@ -215,8 +215,9 @@ pub fn tick() void {
 }
 
 pub fn beginLink() void {
-    if (star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1)
+    if (ui_mode == .Game and star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1) {
         ui_mode = .Linking;
+    }
 
     if (ui_mode == .ConfirmLink) {
         const cost = getLinkMineralCost(star_selection.?, focused_star.?);
@@ -246,8 +247,7 @@ pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_posit
 
     var any_mouse_hovering: bool = false;
 
-    for (stars_aux.items, 0..) |star, i|
-    {
+    for (stars_aux.items, 0..) |star, i| {
         star.mouse_hovering = false;
         if (rl.checkCollisionPointRec(input.mouse_world_pos, star.getStarRectangle())) {
             star.mouse_hovering = true;
@@ -266,19 +266,11 @@ pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_posit
         }
     }
 
-    for (ui_elements, ui_positions) |element, position|
-    {
-        if(position) |pos|
-        {
-            const ui_rect: rl.Rectangle = .{
-                .x = pos.x,
-                .y = pos.y,
-                .width = element.size().x,
-                .height = element.size().y
-            };
+    for (ui_elements, ui_positions) |element, position| {
+        if (position) |pos| {
+            const ui_rect: rl.Rectangle = .{ .x = pos.x, .y = pos.y, .width = element.size().x, .height = element.size().y };
 
-            if(rl.checkCollisionPointRec(input.mouse_screen_pos, ui_rect))
-            {
+            if (rl.checkCollisionPointRec(input.mouse_screen_pos, ui_rect)) {
                 any_mouse_hovering = true;
                 break;
             }

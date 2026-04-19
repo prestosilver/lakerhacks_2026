@@ -173,12 +173,12 @@ pub const Label = struct {
 };
 
 pub const ResourceLabel = struct {
-    line_buf: [512:0]u8 = undefined,
+    line_buf: [4][512:0]u8 = undefined,
 
-    desc: []const u8 = "",
+    desc: [:0]const u8 = "",
 
     resources: ?*Star.StarResources = null,
-    text: [:0]const u8 = "",
+    text: [4][:0]const u8 = [1][:0]const u8{""} ** 4,
 
     height: i32,
     show_change: bool,
@@ -194,38 +194,93 @@ pub const ResourceLabel = struct {
         var eng = resources.energy;
         var min = resources.mineral;
 
-        const pop_sign_str = if(pop >= 0) "+" else "";
-        const org_sign_str = if(org >= 0) "+" else "";
-        const eng_sign_str = if(eng >= 0) "+" else "";
-        const min_sign_str = if(min >= 0) "+" else "";
+        const pop_sign_str = if (pop >= 0) "+" else "";
+        const org_sign_str = if (org >= 0) "+" else "";
+        const eng_sign_str = if (eng >= 0) "+" else "";
+        const min_sign_str = if (min >= 0) "+" else "";
 
-        if(self.show_change)
-        {
-            self.text = std.fmt.bufPrintZ(
-                &self.line_buf,
-                "{s}  - P:{s}{d:.2}  O:{s}{d:.2}  E:{s}{d:.2}  M:{s}{d:.2}",
-                .{self.desc, pop_sign_str, pop, org_sign_str, org, eng_sign_str, eng, min_sign_str, min},
+        if (self.show_change) {
+            self.text[0] = std.fmt.bufPrintZ(
+                &self.line_buf[0],
+                "P:{s}{d:.2}",
+                .{ pop_sign_str, pop },
             ) catch unreachable;
-        }
-        else
-        {
+            self.text[1] = std.fmt.bufPrintZ(
+                &self.line_buf[1],
+                "O:{s}{d:.2}",
+                .{ org_sign_str, org },
+            ) catch unreachable;
+            self.text[2] = std.fmt.bufPrintZ(
+                &self.line_buf[2],
+                "E:{s}{d:.2}",
+                .{ eng_sign_str, eng },
+            ) catch unreachable;
+            self.text[3] = std.fmt.bufPrintZ(
+                &self.line_buf[3],
+                "M:{s}{d:.2}",
+                .{ min_sign_str, min },
+            ) catch unreachable;
+        } else {
             pop = @floor(pop);
             org = @floor(org);
             eng = @floor(eng);
             min = @floor(min);
 
-            self.text = std.fmt.bufPrintZ(
-                &self.line_buf,
-                "{s}  - P:{d}  O:{d}  E:{d}  M:{d}",
-                .{self.desc, pop, org, eng, min},
+            self.text[0] = std.fmt.bufPrintZ(
+                &self.line_buf[0],
+                "P:{d:.2}",
+                .{pop},
             ) catch unreachable;
-        }        
+            self.text[1] = std.fmt.bufPrintZ(
+                &self.line_buf[1],
+                "O:{d:.2}",
+                .{org},
+            ) catch unreachable;
+            self.text[2] = std.fmt.bufPrintZ(
+                &self.line_buf[2],
+                "E:{d:.2}",
+                .{eng},
+            ) catch unreachable;
+            self.text[3] = std.fmt.bufPrintZ(
+                &self.line_buf[3],
+                "M:{d:.2}",
+                .{min},
+            ) catch unreachable;
+        }
     }
 
     pub fn draw(self: *const ResourceLabel, offset: rl.Vector2) void {
         rl.drawText(
-            self.text,
+            self.desc,
             @intFromFloat(offset.x),
+            @intFromFloat(offset.y),
+            self.height,
+            .white,
+        );
+        rl.drawText(
+            self.text[0],
+            @intFromFloat(offset.x + 100),
+            @intFromFloat(offset.y),
+            self.height,
+            .white,
+        );
+        rl.drawText(
+            self.text[1],
+            @intFromFloat(offset.x + 100 + 100),
+            @intFromFloat(offset.y),
+            self.height,
+            .white,
+        );
+        rl.drawText(
+            self.text[2],
+            @intFromFloat(offset.x + 100 + 200),
+            @intFromFloat(offset.y),
+            self.height,
+            .white,
+        );
+        rl.drawText(
+            self.text[3],
+            @intFromFloat(offset.x + 100 + 300),
             @intFromFloat(offset.y),
             self.height,
             .white,
@@ -233,10 +288,8 @@ pub const ResourceLabel = struct {
     }
 
     pub fn size(self: *const ResourceLabel) rl.Vector2 {
-        const width = rl.measureText(self.text, self.height);
-
         return .{
-            .x = @floatFromInt(width),
+            .x = @floatFromInt(100 + 100 * 4),
             .y = @floatFromInt(self.height),
         };
     }
