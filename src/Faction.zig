@@ -35,8 +35,6 @@ pub fn tick(self: *Faction, stars: *std.ArrayList(*Star)) void {
         }
     }
 
-    std.log.info("{?} {?}", .{ min_s, min_t });
-
     if (min_t) |t| {
         for (stars.items, 0..) |cell, cell_id| {
             if (cell == self.stars.items[min_s.?]) {
