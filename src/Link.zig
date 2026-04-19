@@ -1,6 +1,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+const assets = @import("assets.zig");
+
 const Star = @import("Star.zig");
 const Camera = @import("Camera.zig");
 
@@ -14,6 +16,9 @@ toggle: bool,
 
 /// Toggle set when a link occurs. Used for drawing.
 link_toggle: bool,
+
+sound_id: u8,
+sound_pitch: u8,
 
 pub fn draw(self: *const Link, camera: Camera) void
 {
@@ -34,6 +39,8 @@ pub fn init(a: *Star, b: *Star) Link {
         .b = b,
         .toggle = a.cycle_timer < b.cycle_timer,
         .link_toggle = false,
+        .sound_id = @intCast(rl.getRandomValue(0, 4)),
+        .sound_pitch = @intCast(rl.getRandomValue(0, 6))
     };
 }
 
@@ -66,5 +73,20 @@ pub fn tick(self: *Link) void
     {
         self.link_toggle = true;
         // std.debug.print("{s} ({d}:{d})\n", .{"Link!", a.cycle_timer, b.cycle_timer});
+
+        const pitch: f32 = switch(self.sound_pitch)
+        {
+            0 => 1,       // C
+            1 => 1.122,   // D
+            2 => 1.26,    // E
+            3 => 1.335,   // F
+            4 => 1.498,   // G
+            5 => 1.682,   // A
+            6 => 1.888,   // B
+            else => 2     // C (octave)
+        };
+
+        rl.setSoundPitch(assets.audio_blips[self.sound_id], pitch);
+        rl.playSound(assets.audio_blips[self.sound_id]);
     }
 }
