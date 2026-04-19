@@ -132,8 +132,11 @@ pub fn drawUI(camera: Camera) void {
 
         const can_str = "Press enter to confirm.";
         const cant_str = "Your star doesn't have enough.";
+        const own_str = "This star is already owned by a faction.";
 
-        const res = if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str;
+        const fs = stars_aux.items[focused_star.?];
+
+        const res = if(fs.owner != 0) own_str else (if (selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str);
 
         var line_buf: [128:0]u8 = undefined;
         const str = std.fmt.bufPrintZ(
@@ -322,8 +325,9 @@ pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_posit
         },
         .ConfirmLink => {
             const cost = getLinkMineralCost(star_selection.?, focused_star.?);
+            const fs = stars_aux.items[focused_star.?];
 
-            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
+            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost)) and fs.owner == 0) {
                 linkStars(star_selection.?, focused_star.?);
             } else if (rl.isKeyPressed(.escape)) {
                 focused_star = null;

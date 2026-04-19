@@ -235,8 +235,11 @@ fn setGenRes(self: *Star) void
 
 /// Called once every tick.
 pub fn tick(self: *Star) void {
-    self.setGenRes();
-    self.total_res.add(self.gen_res);
+    if(self.owner != 0)
+    {
+        self.setGenRes();
+        self.total_res.add(self.gen_res);
+    }
 
     if(self.total_res.population <= 1)
     {
