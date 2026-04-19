@@ -73,7 +73,7 @@ pub fn build(b: *std.Build) !void {
         run_step.dependOn(emrun_step);
     } else {
         const exe = b.addExecutable(.{
-            .name = "lakerhacks_2026",
+            .name = "starweb",
             .root_module = exe_mod,
         });
         b.installArtifact(exe);

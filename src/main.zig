@@ -41,7 +41,7 @@ fn get_mouse_world_position() rl.Vector2 {
 }
 
 pub fn main() !void {
-    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
+    rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Starweb");
     defer rl.closeWindow();
 
     // Clear the screen once to avoid a black flash
