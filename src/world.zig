@@ -130,21 +130,26 @@ pub fn drawUI(camera: Camera) void
 {
     if(ui_mode == .Linking)
     {
-        rl.drawText("Linking stars...", 15, @intFromFloat(camera.screen_height - 45), 30, .white);
+        rl.drawText("Linking stars...\nPress escape to cancel.", 15, @intFromFloat(camera.screen_height - 75), 30, .white);
     }
     else if(ui_mode == .ConfirmLink)
     {
         const cost = getLinkMineralCost(star_selection.?, focused_star.?);
 
+        const can_str = "Press enter to confirm.";
+        const cant_str = "Your star doesn't have enough.";
+
+        const res = if(selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) can_str else cant_str;
+
         var line_buf: [128:0]u8 = undefined;
-        const str = std.fmt.bufPrintZ(&line_buf, "This link will cost {d} minerals.\nPress enter to confirm.",
-        .{cost},) catch |err|
+        const str = std.fmt.bufPrintZ(&line_buf, "This link will cost {d} minerals.\n{s}\nPress escape to cancel.",
+        .{cost, res},) catch |err|
         {
             std.debug.print("Error: {}.\n", .{err});
             @panic("Somehow, you exceeded the 128-byte buffer. Congrats, I guess");
         };
 
-        rl.drawText(str, 15, @intFromFloat(camera.screen_height - 75), 30, .pink);
+        rl.drawText(str, 15, @intFromFloat(camera.screen_height - 105), 30, .pink);
     }
 }
 
@@ -197,7 +202,7 @@ fn selectStar(index: usize) void
 }
 
 pub fn selectedStar() ?*Star {
-    return if (star_selection >= 0)
+    return if (star_selection != null)
         stars_aux.items[star_selection.?]
     else
         null;
@@ -240,13 +245,35 @@ pub fn updateInput(input: UserInput) void
         }
     }
 
-    if(star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1 and rl.isKeyPressed(.kp_1))
+    switch(ui_mode)
     {
-        ui_mode = .Linking;
-    }
+        .Game =>
+        {
+            if(star_selection != null and stars_aux.items[@intCast(star_selection.?)].owner == 1 and rl.isKeyPressed(.kp_1))
+            {
+                ui_mode = .Linking;
+            }
+        },
+        .Linking =>
+        {
+            if(rl.isKeyPressed(.escape))
+            {
+                ui_mode = .Game;
+            }
+        },
+        .ConfirmLink =>
+        {
+            const cost = getLinkMineralCost(star_selection.?, focused_star.?);
 
-    if(rl.isKeyPressed(.enter) and ui_mode == .ConfirmLink)
-    {
-        linkStars(star_selection.?, focused_star.?);
+            if(rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost)))
+            {
+                linkStars(star_selection.?, focused_star.?);
+            }
+            else if(rl.isKeyPressed(.escape))
+            {
+                focused_star = null;
+                ui_mode = .Game;
+            }
+        }
     }
 }
