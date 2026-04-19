@@ -85,6 +85,21 @@ faction_color: rl.Color = .blank,
 
 mouse_hovering: bool,
 
+pub fn collapse(self: *Star) void
+{
+    self.setOwner(0);
+
+    self.gen_res = .init_zero();
+    self.req_res = .init_zero();
+
+    self.total_res = .{
+        .population = 0,
+        .energy = 0,
+        .organic = @floatFromInt(rl.getRandomValue(60, 100)),
+        .mineral = 0
+    };
+}
+
 pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
     const world_pos: rl.Vector2 = .{
         .x = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x,
@@ -241,24 +256,22 @@ pub fn tick(self: *Star) void {
         self.total_res.add(self.gen_res);
     }
 
-    if(self.total_res.population <= 1)
+    if(self.total_res.energy <= 0)
     {
-        self.setOwner(0);
-        self.total_res.population = 0;
+        // Blackouts ensue, people die.
+        self.total_res.population -= 0.001;
+        self.total_res.energy = 0;
     }
 
     if(self.total_res.organic <= 1)
     {
         // Population dies, Star loses owner.
-        self.setOwner(0);
         self.total_res.population = 0;
     }
 
-    if(self.total_res.energy <= 0)
+    if(self.total_res.population <= 1)
     {
-        // Blackouts ensue, people die.
-        self.total_res.population -= 1;
-        self.total_res.energy = 0;
+        self.collapse();
     }
 
     if(self.total_res.mineral <= 0)
