@@ -163,6 +163,13 @@
         }
       }
 
+      function resizeCanvas() {
+          canvasElement.style.width = "100vw";
+          canvasElement.style.height = "100vh";
+          console.log("piss");
+      }
+      window.addEventListener('resize', resizeCanvas);
+
 #if MODULARIZE && !EXPORT_ES6
       var moduleArgs = {
 #else
@@ -179,6 +186,7 @@
            setStatus(left ? 'Preparing(' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All preloads done.(1/1)');
         }
       };
+
       window.onerror = () => {
         setStatus('Exception thrown, see JavaScript console');
         spinnerelement.style.display = 'none';

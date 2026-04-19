@@ -228,22 +228,22 @@ pub const ResourceLabel = struct {
 
             self.text[0] = std.fmt.bufPrintZ(
                 &self.line_buf[0],
-                "P:{d:.2}",
+                "P:{d}",
                 .{pop},
             ) catch unreachable;
             self.text[1] = std.fmt.bufPrintZ(
                 &self.line_buf[1],
-                "O:{d:.2}",
+                "O:{d}",
                 .{org},
             ) catch unreachable;
             self.text[2] = std.fmt.bufPrintZ(
                 &self.line_buf[2],
-                "E:{d:.2}",
+                "E:{d}",
                 .{eng},
             ) catch unreachable;
             self.text[3] = std.fmt.bufPrintZ(
                 &self.line_buf[3],
-                "M:{d:.2}",
+                "M:{d}",
                 .{min},
             ) catch unreachable;
         }
