@@ -69,10 +69,13 @@ pub fn tick(self: *Link) void
         }
     }
 
-    if(linked)
+    if(linked and a.total_res.energy >= 1 and b.total_res.energy >= 1)
     {
         self.link_toggle = true;
         // std.debug.print("{s} ({d}:{d})\n", .{"Link!", a.cycle_timer, b.cycle_timer});
+
+        a.total_res.energy -= 1;
+        b.total_res.energy -= 1;
 
         if(a.owner == 1 or b.owner == 1)
         {

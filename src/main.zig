@@ -40,10 +40,6 @@ fn get_mouse_world_position() rl.Vector2 {
     return camera.vector2_screen_to_world(get_mouse_position());
 }
 
-pub fn test_destroy() void {
-    std.log.info("destroy", .{});
-}
-
 pub fn main() !void {
     rl.initWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Lakerhacks 2026");
     defer rl.closeWindow();
@@ -82,11 +78,17 @@ pub fn main() !void {
         .desc = "Uses",
         .show_change = true
     };
-    var destroy_button = ui.Button{
+    var link_button = ui.Button{
         .height = 24,
-        .text = "Destroy",
+        .text = "Link",
         .padding = 10,
-        .on_click = &test_destroy,
+        .on_click = &world.beginLink,
+    };
+    var cancel_button = ui.Button{
+        .height = 24,
+        .text = "Stop Link",
+        .padding = 10,
+        .on_click = &world.cancelLink,
     };
 
     var star_panel = ui.Panel{
@@ -94,7 +96,8 @@ pub fn main() !void {
             .init(&star_has_text),
             .init(&star_makes_text),
             .init(&star_uses_text),
-            .init(&destroy_button),
+            .init(&link_button),
+            .init(&cancel_button),
         },
         .padding = 20,
     };
@@ -154,8 +157,8 @@ pub fn main() !void {
                 }
 
                 const ui_location_world: rl.Vector2 = .{
-                    .x = @as(f32, @floatFromInt(Star.GRID_UNIT * star.x)) - Star.SELECTION_OUTLINE_BORDER,
-                    .y = @as(f32, @floatFromInt(Star.GRID_UNIT * star.y)) + Star.RADIUS * 2 + Star.SELECTION_OUTLINE_BORDER,
+                    .x = @as(f32, @floatFromInt(Star.GRID_UNIT * star.x)) + star.center_x - Star.SELECTION_OUTLINE_BORDER,
+                    .y = @as(f32, @floatFromInt(Star.GRID_UNIT * star.y)) + star.center_y + Star.RADIUS * 2 + Star.SELECTION_OUTLINE_BORDER,
                 };
 
                 const ui_location_screen = camera.vector2_world_to_screen(ui_location_world);
