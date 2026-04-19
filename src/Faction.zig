@@ -13,7 +13,7 @@ tick_acc: u32 = 0,
 pub fn tick(self: *Faction, stars: *std.ArrayList(*Star)) void {
     self.tick_acc +%= 1;
 
-    if (self.tick_acc % 10 != 0) return;
+    if (self.tick_acc % 100 != 0) return;
 
     var min_d: f32 = 0;
     var min_s: ?usize = null;
