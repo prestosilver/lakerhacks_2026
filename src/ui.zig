@@ -181,18 +181,45 @@ pub const ResourceLabel = struct {
     text: [:0]const u8 = "",
 
     height: i32,
+    show_change: bool,
 
     pub fn update(self: *ResourceLabel, dt: f32, mouse: rl.Vector2) void {
         _ = dt;
         _ = mouse;
 
-        if (self.resources) |resources| {
+        const resources = self.resources.?;
+
+        var pop = resources.population;
+        var org = resources.organic;
+        var eng = resources.energy;
+        var min = resources.mineral;
+
+        const pop_sign_str = if(pop >= 0) "+" else "";
+        const org_sign_str = if(org >= 0) "+" else "";
+        const eng_sign_str = if(eng >= 0) "+" else "";
+        const min_sign_str = if(min >= 0) "+" else "";
+
+        if(self.show_change)
+        {
+            self.text = std.fmt.bufPrintZ(
+                &self.line_buf,
+                "{s}  - P:{s}{d:.2}  O:{s}{d:.2}  E:{s}{d:.2}  M:{s}{d:.2}",
+                .{self.desc, pop_sign_str, pop, org_sign_str, org, eng_sign_str, eng, min_sign_str, min},
+            ) catch unreachable;
+        }
+        else
+        {
+            pop = @floor(pop);
+            org = @floor(org);
+            eng = @floor(eng);
+            min = @floor(min);
+
             self.text = std.fmt.bufPrintZ(
                 &self.line_buf,
                 "{s}  - P:{d}  O:{d}  E:{d}  M:{d}",
-                .{ self.desc, resources.population, resources.organic, resources.energy, resources.mineral },
+                .{self.desc, pop, org, eng, min},
             ) catch unreachable;
-        }
+        }        
     }
 
     pub fn draw(self: *const ResourceLabel, offset: rl.Vector2) void {

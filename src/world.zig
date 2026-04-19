@@ -2,6 +2,7 @@ const std = @import("std");
 const rl = @import("raylib");
 
 const assets = @import("assets.zig");
+const ui = @import("ui.zig");
 
 const Star = @import("Star.zig");
 const Link = @import("Link.zig");
@@ -31,7 +32,7 @@ var factions_aux: std.ArrayList(Faction) = undefined;
 
 var links: std.ArrayList(Link) = undefined;
 
-pub const UserInput = struct { mouse_world_pos: rl.Vector2, lmb: bool, rmb: bool };
+pub const UserInput = struct { mouse_world_pos: rl.Vector2, mouse_screen_pos: rl.Vector2, lmb: bool, rmb: bool };
 
 pub const UIMode = enum { Game, Linking, ConfirmLink };
 
@@ -75,6 +76,11 @@ fn generate_world(camera: *Camera) void {
 
         stars_aux.items[host_star].setOwner(cur_faction);
 
+        stars_aux.items[host_star].total_res.population = @floatFromInt(rl.getRandomValue(10, 20));
+        stars_aux.items[host_star].total_res.organic = @floatFromInt(rl.getRandomValue(40, 80));
+        stars_aux.items[host_star].total_res.energy = @floatFromInt(rl.getRandomValue(150, 200));
+        stars_aux.items[host_star].total_res.mineral = @floatFromInt(rl.getRandomValue(20, 30));
+
         const faction: Faction = .init(stars_aux.items[host_star]);
         factions_aux.appendAssumeCapacity(faction);
 
@@ -102,9 +108,7 @@ pub fn draw(camera: Camera) void {
 
         const star_screen_a = camera.vector2_world_to_screen(star_pos_a);
         const star_screen_b = camera.vector2_world_to_screen(star_pos_b);
-
-        std.debug.print("{d}, {d}\n", .{ star_screen_a.x, star_screen_a.y });
-
+        
         rl.drawLineEx(star_screen_a, star_screen_b, 2, .pink);
     }
 
@@ -114,9 +118,9 @@ pub fn draw(camera: Camera) void {
 
     const screen_bounds = camera.get_screen_space_rect();
 
-    for (stars_aux.items) |star| {
+    for (stars_aux.items, 0..) |star, i| {
         if (rl.checkCollisionRecs(star.getGridRectangle(), screen_bounds))
-            star.draw(camera);
+            star.draw(camera, star_selection != null and i == star_selection.?);
     }
 }
 
@@ -227,7 +231,7 @@ pub fn cancelLink() void {
     }
 }
 
-pub fn updateInput(input: UserInput) void {
+pub fn updateInput(input: UserInput, ui_elements: []const ui.UIElement, ui_positions: []const ?rl.Vector2) void {
     if (input.rmb) {
         star_selection = null;
         focused_star = null;
@@ -235,10 +239,14 @@ pub fn updateInput(input: UserInput) void {
         ui_mode = .Game;
     }
 
-    for (stars_aux.items, 0..) |star, i| {
+    var any_mouse_hovering: bool = false;
+
+    for (stars_aux.items, 0..) |star, i|
+    {
         star.mouse_hovering = false;
         if (rl.checkCollisionPointRec(input.mouse_world_pos, star.getStarRectangle())) {
             star.mouse_hovering = true;
+            any_mouse_hovering = true;
             if (input.lmb) {
                 switch (ui_mode) {
                     .Game => selectStar(i),
@@ -251,5 +259,49 @@ pub fn updateInput(input: UserInput) void {
                 }
             }
         }
+    }
+
+    for (ui_elements, ui_positions) |element, position|
+    {
+        if(position) |pos|
+        {
+            const ui_rect: rl.Rectangle = .{
+                .x = pos.x,
+                .y = pos.y,
+                .width = element.size().x,
+                .height = element.size().y
+            };
+
+            if(rl.checkCollisionPointRec(input.mouse_screen_pos, ui_rect))
+            {
+                any_mouse_hovering = true;
+                break;
+            }
+        }
+    }
+
+    const pressed_empty = (rl.isMouseButtonPressed(.left) and !any_mouse_hovering);
+
+    switch (ui_mode) {
+        .Game => {
+            if (pressed_empty) {
+                star_selection = null;
+            }
+        },
+        .Linking => {
+            if (rl.isKeyPressed(.escape) or pressed_empty) {
+                ui_mode = .Game;
+            }
+        },
+        .ConfirmLink => {
+            const cost = getLinkMineralCost(star_selection.?, focused_star.?);
+
+            if (rl.isKeyPressed(.enter) and selectedStar().?.total_res.mineral >= @as(f32, @floatFromInt(cost))) {
+                linkStars(star_selection.?, focused_star.?);
+            } else if (rl.isKeyPressed(.escape)) {
+                focused_star = null;
+                ui_mode = .Game;
+            }
+        },
     }
 }

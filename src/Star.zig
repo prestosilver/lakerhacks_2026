@@ -85,7 +85,7 @@ faction_color: rl.Color = .blank,
 
 mouse_hovering: bool,
 
-pub fn draw(self: *const Star, camera: Camera) void {
+pub fn draw(self: *const Star, camera: Camera, is_selected: bool) void {
     const world_pos: rl.Vector2 = .{
         .x = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x,
         .y = @as(f32, @floatFromInt(GRID_UNIT * self.y)) + self.center_y,
@@ -114,6 +114,11 @@ pub fn draw(self: *const Star, camera: Camera) void {
 
     if (self.mouse_hovering) {
         rl.drawRectangleRec(outline_screen_pos, .{ .r = 255, .g = 255, .b = 255, .a = 200 });
+    }
+    
+    if (is_selected)
+    {
+        rl.drawRectangleLinesEx(outline_screen_pos, 3, .white);
     }
 
     const grid_rectangle_world = self.getGridRectangle();
@@ -207,8 +212,8 @@ pub fn getStarRectangle(self: Star) rl.Rectangle {
 
 pub fn getStarWorldPos(self: Star, centered: bool) rl.Vector2 {
     if (centered) {
-        const x: f32 = @floatFromInt(GRID_UNIT * self.x);
-        const y: f32 = @floatFromInt(GRID_UNIT * self.y);
+        const x: f32 = @as(f32, @floatFromInt(GRID_UNIT * self.x)) + self.center_x;
+        const y: f32 = @as(f32, @floatFromInt(GRID_UNIT * self.y)) + self.center_y;
 
         return .{ .x = x + RADIUS, .y = y + RADIUS };
     } else return .{ .x = @floatFromInt(GRID_UNIT * self.x), .y = @floatFromInt(GRID_UNIT * self.y) };
@@ -219,8 +224,23 @@ pub fn setOwner(self: *Star, owner: usize) void {
     self.faction_color = self.getFactionColor();
 }
 
+fn setGenRes(self: *Star) void
+{
+    self.gen_res.organic = self.total_res.energy / 5000 - self.total_res.population / 1000;
+    self.gen_res.energy = self.total_res.population * (self.total_res.organic / 2000 + self.total_res.mineral / 500);
+    self.gen_res.mineral = self.total_res.population * (self.total_res.energy / 2000);
+
+    if(self.total_res.energy > 100)
+    {
+        self.gen_res.energy /= self.total_res.energy - 99;
+    }
+}
+
 /// Called once every tick.
 pub fn tick(self: *Star) void {
+    self.setGenRes();
+    self.total_res.add(self.gen_res);
+
     self.cycle_timer += self.cycle_speed;
     if (self.cycle_timer >= self.cycle_length) {
         self.cycle_timer -= self.cycle_length;
