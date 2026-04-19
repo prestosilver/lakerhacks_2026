@@ -143,6 +143,7 @@ fn linkStars(index_a: usize, index_b: usize) void
     const link: Link = .init(stars_aux.items[index_a], stars_aux.items[index_b]);
     links.appendAssumeCapacity(link);
 
+    stars_aux.items[index_a].setOwner(stars_aux.items[index_b].owner);
     star_selection = @intCast(index_a);
     ui_mode = .Game;
 }
